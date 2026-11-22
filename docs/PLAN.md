@@ -418,9 +418,9 @@ Ramas: `main` (siempre desplegable) + ramas de feature con Pull Request obligato
 
 | Sprint | Entregable |
 |--------|-----------|
-| 1 | Monorepo, docker-compose, Django + React base, CI (lint/tests), pre-commit |
-| 2 | Tenancy + RLS, usuarios, login JWT, recuperación de contraseña, UI shell y sistema de diseño |
-| 3 | RBAC con alcance por proyecto, auditoría, administración de usuarios/roles; Terraform + deploy a staging |
+| 1 ✅ | Monorepo, docker-compose, Django + React base, CI (lint/tests), pre-commit |
+| 2 ✅ | Tenancy + RLS, usuarios, login JWT, recuperación de contraseña, UI shell y sistema de diseño |
+| 3 | RBAC con alcance por proyecto, auditoría, administración de usuarios/roles e invitaciones, MFA (TOTP), cliente API generado con orval; Terraform + deploy a staging |
 | 4 | Organización: centros de costo, proyectos, puestos, categorías de convención, feriados, catálogos |
 | 5 | Expediente de empleados, contratos, asignación a proyectos |
 | 6 | **Marcaciones:** modelos, dispositivos, importadores ZKTeco y Excel/CSV, captura manual, lotes |

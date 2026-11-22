@@ -1,8 +1,12 @@
 import { Building2, Moon, Sun } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import { useAuth } from '@/features/auth/use-auth'
 import { cn } from '@/lib/utils'
+import { NoTenant } from './no-tenant'
 import { navigation } from './navigation'
+import { TenantSwitcher } from './tenant-switcher'
+import { UserMenu } from './user-menu'
 
 function useTheme() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -21,6 +25,9 @@ function useTheme() {
 
 export function AppLayout() {
   const { dark, toggle } = useTheme()
+  const { currentTenant } = useAuth()
+
+  if (!currentTenant) return <NoTenant />
 
   return (
     <div className="flex min-h-screen">
@@ -66,17 +73,19 @@ export function AppLayout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="bg-card flex h-16 items-center justify-between border-b px-4 md:px-8">
-          <span className="font-semibold md:hidden">Constructora</span>
-          <span className="text-muted-foreground hidden text-sm md:block">Gestión empresarial</span>
-          <button
-            type="button"
-            onClick={toggle}
-            className="text-muted-foreground hover:bg-muted rounded-md p-2"
-            aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-          >
-            {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </button>
+        <header className="bg-card flex h-16 items-center justify-between gap-4 border-b px-4 md:px-8">
+          <TenantSwitcher />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggle}
+              className="text-muted-foreground hover:bg-muted rounded-md p-2"
+              aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            >
+              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </button>
+            <UserMenu />
+          </div>
         </header>
         <main className="flex-1 p-4 md:p-8">
           <Outlet />

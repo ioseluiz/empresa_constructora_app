@@ -1,36 +1,42 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { jsonResponse, renderWithProviders } from '@/test/utils'
 import { DashboardPage } from './dashboard-page'
 
-function renderPage() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(
-    <QueryClientProvider client={client}>
-      <DashboardPage />
-    </QueryClientProvider>,
+function mockApi(healthStatus: number) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string) =>
+      Promise.resolve(
+        url.includes('/health/')
+          ? jsonResponse({ status: 'ok', database: 'ok' }, healthStatus)
+          : jsonResponse({
+              id: 't1',
+              name: 'Istmo',
+              legal_name: 'Constructora Istmo S.A.',
+              ruc: '155-1',
+              dv: '45',
+            }),
+      ),
+    ),
   )
 }
 
 describe('DashboardPage', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('muestra la API operativa cuando el health check responde ok', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi
-        .fn()
-        .mockResolvedValue(
-          new Response(JSON.stringify({ status: 'ok', database: 'ok' }), { status: 200 }),
-        ),
-    )
-    renderPage()
+  it('saluda al usuario y muestra los datos de la empresa', async () => {
+    mockApi(200)
+    renderWithProviders(<DashboardPage />)
+    expect(screen.getByText('Hola, Ana')).toBeInTheDocument()
+    expect(await screen.findByText('Constructora Istmo S.A.')).toBeInTheDocument()
+    expect(screen.getByText('RUC 155-1 DV 45')).toBeInTheDocument()
     expect(await screen.findByText('API operativa')).toBeInTheDocument()
   })
 
   it('muestra error cuando la API no responde', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 503 })))
-    renderPage()
+    mockApi(503)
+    renderWithProviders(<DashboardPage />)
     expect(await screen.findByText('API no disponible')).toBeInTheDocument()
   })
 })

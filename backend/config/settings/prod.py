@@ -2,6 +2,8 @@ from .base import *
 
 DEBUG = False
 SECRET_KEY = env("DJANGO_SECRET_KEY")
+AUTH_COOKIE_SECURE = True
+CACHES = {"default": env.cache_url("CACHE_URL", default=env("REDIS_URL", default="locmemcache://"))}
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)

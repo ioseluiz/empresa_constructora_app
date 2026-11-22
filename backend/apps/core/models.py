@@ -11,7 +11,10 @@ from decimal import Decimal
 from typing import Any
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
+
+from .tenancy import get_current_tenant, is_tenant_scope_bypassed, require_current_tenant
 
 
 class UUIDModel(models.Model):
@@ -52,10 +55,53 @@ class AuditedModel(TimeStampedModel):
 
 
 class BaseModel(UUIDModel, AuditedModel):
-    """Base para entidades de negocio. En el Sprint 2 se agrega `tenant`."""
+    """Base para entidades globales (no pertenecen a una empresa)."""
 
     class Meta:
         abstract = True
+
+
+class TenantManager(models.Manager):
+    """Manager por defecto de los modelos de empresa: siempre filtra por el tenant activo
+    y falla en voz alta si no hay ninguno."""
+
+    def get_queryset(self) -> models.QuerySet:
+        qs = super().get_queryset()
+        if is_tenant_scope_bypassed():
+            return qs
+        return qs.filter(tenant=require_current_tenant())
+
+
+class TenantAwareModel(BaseModel):
+    """Base para TODA entidad de negocio de una empresa (empleados, planillas, marcaciones…).
+
+    La migración que crea el modelo debe incluir `apps.core.rls.EnableTenantRLS`.
+    """
+
+    tenant = models.ForeignKey(
+        "tenants.Tenant",
+        verbose_name="empresa",
+        on_delete=models.PROTECT,
+        related_name="+",
+        editable=False,
+    )
+
+    tenant_id: Any
+
+    objects = TenantManager()
+    all_tenants = models.Manager()  # noqa: DJ012 — solo para procesos de plataforma
+
+    class Meta:
+        abstract = True
+        base_manager_name = "all_tenants"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        current = get_current_tenant()
+        if self.tenant_id is None:
+            self.tenant = require_current_tenant()
+        elif current is not None and self.tenant_id != current.pk:
+            raise ValidationError("No se puede guardar un registro de otra empresa.")
+        super().save(*args, **kwargs)
 
 
 class MoneyField(models.DecimalField):
