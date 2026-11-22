@@ -7,7 +7,12 @@ export interface AuthContextValue {
   status: AuthStatus
   user: User | null
   currentTenant: Membership | null
-  login: (email: string, password: string) => Promise<void>
+  /** Devuelve `{ mfaToken }` si la cuenta exige un segundo factor. */
+  login: (email: string, password: string) => Promise<{ mfaToken?: string }>
+  verifyMfa: (mfaToken: string, code: string) => Promise<void>
+  /** Inicia sesión con una respuesta de login ya obtenida (p. ej. al aceptar una invitación). */
+  startSession: (access: string, user: User) => void
+  refreshUser: () => Promise<void>
   logout: () => Promise<void>
   selectTenant: (tenantId: string) => void
 }

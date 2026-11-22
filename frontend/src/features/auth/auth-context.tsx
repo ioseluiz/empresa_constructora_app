@@ -56,14 +56,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [applyUser, clearSession])
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      const { access, user: me } = await authApi.login(email, password)
+  const startSession = useCallback(
+    (access: string, me: User) => {
       setAccessToken(access)
       applyUser(me)
     },
     [applyUser],
   )
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const result = await authApi.login(email, password)
+      if (result.mfa_required && result.mfa_token) return { mfaToken: result.mfa_token }
+      if (result.access && result.user) startSession(result.access, result.user)
+      return {}
+    },
+    [startSession],
+  )
+
+  const verifyMfa = useCallback(
+    async (mfaToken: string, code: string) => {
+      const { access, user: me } = await authApi.loginMfa(mfaToken, code)
+      startSession(access, me)
+    },
+    [startSession],
+  )
+
+  const refreshUser = useCallback(async () => {
+    const me = await authApi.me()
+    setUser(me)
+    setCurrentTenant(pickTenant(me))
+  }, [])
 
   const logout = useCallback(async () => {
     try {
@@ -85,8 +108,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo(
-    () => ({ status, user, currentTenant, login, logout, selectTenant }),
-    [status, user, currentTenant, login, logout, selectTenant],
+    () => ({
+      status,
+      user,
+      currentTenant,
+      login,
+      verifyMfa,
+      startSession,
+      refreshUser,
+      logout,
+      selectTenant,
+    }),
+    [
+      status,
+      user,
+      currentTenant,
+      login,
+      verifyMfa,
+      startSession,
+      refreshUser,
+      logout,
+      selectTenant,
+    ],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

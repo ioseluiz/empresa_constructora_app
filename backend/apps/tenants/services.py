@@ -29,4 +29,7 @@ def create_tenant(
     if owner is None:
         owner = User.objects.create_user(owner_email, owner_password)
     Membership.objects.create(user=owner, tenant=tenant, is_owner=True)
+    from apps.iam.services import create_default_roles
+
+    create_default_roles(tenant)
     return tenant, owner

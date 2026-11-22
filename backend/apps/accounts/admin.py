@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import User
+from .models import SecurityEvent, User
 
 
 @admin.register(User)
@@ -13,6 +13,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Datos personales", {"fields": ("first_name", "last_name")}),
+        ("Seguridad", {"fields": ("mfa_enabled",)}),
         (
             "Permisos",
             {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")},
@@ -20,3 +21,14 @@ class UserAdmin(BaseUserAdmin):
         ("Fechas", {"fields": ("last_login", "date_joined")}),
     )
     add_fieldsets = ((None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),)
+
+
+@admin.register(SecurityEvent)
+class SecurityEventAdmin(admin.ModelAdmin):
+    list_display = ["created_at", "email", "type", "ip_address"]
+    list_filter = ["type"]
+    search_fields = ["email", "ip_address"]
+    readonly_fields = [f.name for f in SecurityEvent._meta.fields]
+
+    def has_add_permission(self, request) -> bool:
+        return False

@@ -84,35 +84,41 @@ function firstErrorMessage(data: unknown): string | undefined {
   if (typeof record.detail === 'string') return record.detail
   for (const value of Object.values(record)) {
     if (Array.isArray(value) && typeof value[0] === 'string') return value[0]
+    if (typeof value === 'string') return value
   }
   return undefined
 }
 
-async function send(method: string, path: string, options: RequestOptions): Promise<Response> {
-  const headers: Record<string, string> = { Accept: 'application/json' }
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
-  if (!options.anonymous && accessToken) headers.Authorization = `Bearer ${accessToken}`
+function buildHeaders(init: RequestInit, anonymous: boolean): Headers {
+  const headers = new Headers(init.headers)
+  headers.set('Accept', 'application/json')
+  if (init.body !== undefined && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+  if (!anonymous && accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
   const tenantId = getStoredTenantId()
-  if (tenantId) headers['X-Tenant-ID'] = tenantId
-  return fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    credentials: 'include',
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
+  if (tenantId) headers.set('X-Tenant-ID', tenantId)
+  return headers
 }
 
-export async function apiRequest<T>(
-  method: string,
-  path: string,
-  options: RequestOptions = {},
+/**
+ * Petición a la API. `url` es la ruta completa (`/api/v1/...`) o relativa a `/api/v1`.
+ * Lo usan tanto `api.*` como el código generado por orval (src/api/mutator.ts).
+ */
+export async function apiFetch<T>(
+  url: string,
+  init: RequestInit = {},
+  { anonymous = false }: { anonymous?: boolean } = {},
 ): Promise<T> {
-  let response = await send(method, path, options)
+  const fullUrl = url.startsWith(API_BASE) ? url : `${API_BASE}${url}`
+  const send = () =>
+    fetch(fullUrl, { ...init, headers: buildHeaders(init, anonymous), credentials: 'include' })
 
-  if (response.status === 401 && !options.anonymous) {
+  let response = await send()
+  if (response.status === 401 && !anonymous) {
     const token = await refreshAccessToken()
     if (token) {
-      response = await send(method, path, options)
+      response = await send()
     } else {
       onSessionExpired?.()
     }
@@ -127,7 +133,28 @@ export async function apiRequest<T>(
     )
   }
   if (response.status === 204) return undefined as T
-  return (await response.json()) as T
+  const text = await response.text()
+  return (text ? JSON.parse(text) : undefined) as T
+}
+
+export function apiRequest<T>(
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
+  return apiFetch<T>(
+    path,
+    { method, body: options.body === undefined ? undefined : JSON.stringify(options.body) },
+    { anonymous: options.anonymous },
+  )
+}
+
+/** Código de error del backend (`{"detail": ..., "code": ...}`), si lo hay. */
+export function errorCode(error: unknown): string | undefined {
+  if (!(error instanceof ApiError) || !error.data || typeof error.data !== 'object')
+    return undefined
+  const code = (error.data as Record<string, unknown>).code
+  return typeof code === 'string' ? code : undefined
 }
 
 export const api = {
@@ -136,7 +163,5 @@ export const api = {
     apiRequest<T>('POST', path, { ...options, body }),
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     apiRequest<T>('PATCH', path, { ...options, body }),
+  delete: <T>(path: string, options?: RequestOptions) => apiRequest<T>('DELETE', path, options),
 }
-
-/** @deprecated usar `api.get` */
-export const apiGet = <T>(path: string) => api.get<T>(path)

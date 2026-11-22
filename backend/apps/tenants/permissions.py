@@ -1,5 +1,6 @@
 import uuid
 
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from rest_framework.views import APIView
@@ -32,15 +33,12 @@ class IsTenantMember(BasePermission):
         )
         if membership is None:
             return False
+        if membership.tenant.require_mfa and not request.user.mfa_enabled:
+            raise PermissionDenied(
+                "Esta empresa exige verificación en dos pasos. Actívala en tu cuenta.",
+                code="mfa_setup_required",
+            )
         request.tenant = membership.tenant  # type: ignore[attr-defined]
         request.membership = membership  # type: ignore[attr-defined]
         activate_tenant(membership.tenant)
         return True
-
-
-class IsTenantOwner(BasePermission):
-    message = "Solo el administrador de la empresa puede realizar esta acción."
-
-    def has_permission(self, request: Request, view: APIView) -> bool:
-        membership = getattr(request, "membership", None)
-        return bool(membership and membership.is_owner)

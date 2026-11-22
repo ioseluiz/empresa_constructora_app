@@ -1,9 +1,11 @@
 import { api } from '@/api/client'
-import type { LoginResponse, User } from './types'
+import type { LoginResponse, LoginResult, User } from './types'
 
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<LoginResponse>('/auth/login/', { email, password }, { anonymous: true }),
+    api.post<LoginResult>('/auth/login/', { email, password }, { anonymous: true }),
+  loginMfa: (mfaToken: string, code: string) =>
+    api.post<LoginResponse>('/auth/login/mfa/', { mfa_token: mfaToken, code }, { anonymous: true }),
   logout: () => api.post<void>('/auth/logout/', undefined, { anonymous: true }),
   me: () => api.get<User>('/auth/me/'),
   requestPasswordReset: (email: string) =>
