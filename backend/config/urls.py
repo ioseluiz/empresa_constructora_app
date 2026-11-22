@@ -13,6 +13,7 @@ api_v1: list[URLPattern | URLResolver] = [
     path("audit/", include("apps.audit.urls")),
     path("org/", include("apps.organization.urls")),
     path("projects/", include("apps.projects.urls")),
+    path("hr/", include("apps.hr.urls")),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
 ]

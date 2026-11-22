@@ -8,7 +8,7 @@ interface DialogProps {
   onOpenChange: (open: boolean) => void
   title: string
   description?: string
-  children: ReactNode
+  children?: ReactNode
   footer?: ReactNode
   size?: 'md' | 'lg'
 }
@@ -52,7 +52,7 @@ export function Dialog({
               <X className="size-4" />
             </DialogPrimitive.Close>
           </div>
-          <div className="overflow-y-auto p-5">{children}</div>
+          {children && <div className="overflow-y-auto p-5">{children}</div>}
           {footer && <div className="flex justify-end gap-2 border-t p-4">{footer}</div>}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

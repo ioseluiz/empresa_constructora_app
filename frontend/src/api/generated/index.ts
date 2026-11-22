@@ -5,4 +5,5 @@ export * from './health/health';
 export * from './iam/iam';
 export * from './mfa/mfa';
 export * from './organizacion/organizacion';
+export * from './personal/personal';
 export * from './proyectos/proyectos';

@@ -92,13 +92,39 @@ function firstErrorMessage(data: unknown): string | undefined {
 function buildHeaders(init: RequestInit, anonymous: boolean): Headers {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
-  if (init.body !== undefined && !headers.has('Content-Type')) {
+  // Con FormData el navegador fija el Content-Type multipart con su boundary.
+  if (init.body !== undefined && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
   if (!anonymous && accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
   const tenantId = getStoredTenantId()
   if (tenantId) headers.set('X-Tenant-ID', tenantId)
   return headers
+}
+
+async function send(url: string, init: RequestInit, anonymous: boolean): Promise<Response> {
+  const fullUrl = url.startsWith(API_BASE) ? url : `${API_BASE}${url}`
+  const once = () =>
+    fetch(fullUrl, { ...init, headers: buildHeaders(init, anonymous), credentials: 'include' })
+
+  let response = await once()
+  if (response.status === 401 && !anonymous) {
+    const token = await refreshAccessToken()
+    if (token) {
+      response = await once()
+    } else {
+      onSessionExpired?.()
+    }
+  }
+  if (!response.ok) {
+    const data: unknown = await response.json().catch(() => undefined)
+    throw new ApiError(
+      response.status,
+      firstErrorMessage(data) ?? 'Ocurrió un error inesperado.',
+      data,
+    )
+  }
+  return response
 }
 
 /**
@@ -110,31 +136,21 @@ export async function apiFetch<T>(
   init: RequestInit = {},
   { anonymous = false }: { anonymous?: boolean } = {},
 ): Promise<T> {
-  const fullUrl = url.startsWith(API_BASE) ? url : `${API_BASE}${url}`
-  const send = () =>
-    fetch(fullUrl, { ...init, headers: buildHeaders(init, anonymous), credentials: 'include' })
-
-  let response = await send()
-  if (response.status === 401 && !anonymous) {
-    const token = await refreshAccessToken()
-    if (token) {
-      response = await send()
-    } else {
-      onSessionExpired?.()
-    }
-  }
-
-  if (!response.ok) {
-    const data: unknown = await response.json().catch(() => undefined)
-    throw new ApiError(
-      response.status,
-      firstErrorMessage(data) ?? 'Ocurrió un error inesperado.',
-      data,
-    )
-  }
+  const response = await send(url, init, anonymous)
   if (response.status === 204) return undefined as T
   const text = await response.text()
   return (text ? JSON.parse(text) : undefined) as T
+}
+
+/** Descarga un archivo autenticado (p. ej. documentos del expediente) y lo guarda. */
+export async function downloadFile(url: string, filename: string): Promise<void> {
+  const response = await send(url, {}, false)
+  const href = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = href
+  link.download = filename
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(href), 1000)
 }
 
 export function apiRequest<T>(
