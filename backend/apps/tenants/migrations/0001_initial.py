@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='creado')),
                 ('updated_at', models.DateTimeField(auto_now=True, verbose_name='actualizado')),
-                ('is_owner', models.BooleanField(default=False, help_text='Administrador principal de la empresa. Los roles detallados llegan en el Sprint 3.', verbose_name='propietario')),
+                ('is_owner', models.BooleanField(default=False, help_text='Administrador principal de la empresa (los roles llegan en el Sprint 3).', verbose_name='propietario')),
                 ('is_active', models.BooleanField(default=True, verbose_name='activa')),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='creado por')),
                 ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='actualizado por')),

@@ -22,6 +22,7 @@ frontend-test:
 
 lint:
 	cd backend && uv run ruff check . && uv run ruff format --check . && uv run mypy .
+	cd backend && uv run python manage.py makemigrations --check --dry-run
 	cd frontend && npm run lint && npm run format:check && npm run typecheck
 
 test: backend-test frontend-test
