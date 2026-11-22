@@ -1,3 +1,6 @@
+from typing import Final, Literal
+from uuid import UUID
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
@@ -27,22 +30,57 @@ def create_default_roles(tenant: Tenant) -> list[Role]:
         ]
 
 
+ALL_PROJECTS: Final = "all"
+Scope = Literal["all"] | frozenset[UUID]
+
+
+def _assignments(membership: Membership) -> list[RoleAssignment]:
+    return list(
+        RoleAssignment.objects.filter(membership=membership)
+        .select_related("role")
+        .prefetch_related("projects")
+    )
+
+
 def effective_permissions(membership: Membership) -> set[str]:
-    """Permisos del miembro en la empresa activa. El propietario tiene todos."""
+    """Permisos del miembro en la empresa activa, en cualquier alcance (para mostrar la UI y
+    el control grueso). El propietario tiene todos. El alcance por proyecto lo resuelve
+    `permission_scope`."""
     if membership.is_owner:
         return set(ALL)
     perms: set[str] = set()
-    for role_perms in Role.objects.filter(assignments__membership=membership).values_list(
-        "permissions", flat=True
-    ):
-        perms.update(role_perms)
+    for assignment in _assignments(membership):
+        perms.update(assignment.role.permissions)
     return perms
 
 
+def permission_scope(membership: Membership, permission: str) -> Scope:
+    """Proyectos donde el miembro tiene el permiso: "all" o un conjunto (posiblemente vacío)."""
+    if membership.is_owner:
+        return ALL_PROJECTS
+    project_ids: set[UUID] = set()
+    for assignment in _assignments(membership):
+        if permission not in assignment.role.permissions:
+            continue
+        ids = {p.pk for p in assignment.projects.all()}
+        if not ids:
+            return ALL_PROJECTS
+        project_ids |= ids
+    return frozenset(project_ids)
+
+
 def set_member_roles(membership: Membership, roles: list[Role]) -> None:
-    RoleAssignment.objects.filter(membership=membership).exclude(role__in=roles).delete()
-    for role in roles:
-        RoleAssignment.objects.get_or_create(membership=membership, role=role)
+    """Asigna roles con alcance de toda la empresa (usado por invitaciones)."""
+    set_member_assignments(membership, [(role, []) for role in roles])
+
+
+def set_member_assignments(membership: Membership, assignments: list[tuple[Role, list]]) -> None:
+    """Reemplaza las asignaciones del miembro por [(rol, [proyectos])]."""
+    wanted = {role.pk: (role, projects) for role, projects in assignments}
+    RoleAssignment.objects.filter(membership=membership).exclude(role_id__in=wanted).delete()
+    for role, projects in wanted.values():
+        assignment, _ = RoleAssignment.objects.get_or_create(membership=membership, role=role)
+        assignment.projects.set(projects)
 
 
 def _send_invitation_email(invitation: Invitation, token: str, invited_by: User) -> None:

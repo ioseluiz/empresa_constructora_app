@@ -25,6 +25,8 @@ export interface Tenant {
   readonly currency: string;
   /** @maxLength 64 */
   timezone?: string;
+  /** El personal de obra se rige por la convención colectiva de la construcción. */
+  applies_cba?: boolean;
   /** Los usuarios sin MFA no podrán acceder a los datos de la empresa. */
   require_mfa?: boolean;
 }

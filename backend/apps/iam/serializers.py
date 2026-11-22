@@ -4,6 +4,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.relations import ManyRelatedField
 
+from apps.projects.models import Project
 from apps.tenants.models import Membership
 
 from .catalog import PERMISSIONS
@@ -61,28 +62,71 @@ class MemberUserSerializer(serializers.Serializer):
     mfa_enabled = serializers.BooleanField()
 
 
+class ProjectRefSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    code = serializers.CharField()
+    name = serializers.CharField()
+
+
+class AssignmentSerializer(serializers.Serializer):
+    role = RoleRefSerializer()
+    projects = ProjectRefSerializer(many=True, help_text="Vacío: todos los proyectos.")
+
+
+class AssignmentWriteSerializer(serializers.Serializer):
+    role_id = serializers.PrimaryKeyRelatedField(queryset=Role.objects.none())
+    project_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Project.objects.none(), many=True, required=False
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["role_id"].queryset = Role.objects.all()  # type: ignore[attr-defined]
+        field = cast(ManyRelatedField, self.fields["project_ids"])
+        field.child_relation.queryset = Project.objects.all()  # type: ignore[arg-type]
+
+
 class MemberSerializer(serializers.ModelSerializer):
     user = MemberUserSerializer(read_only=True)
-    roles = serializers.SerializerMethodField()
-    role_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Role.objects.none(), many=True, write_only=True, required=False
+    assignments = serializers.SerializerMethodField()
+    set_assignments = AssignmentWriteSerializer(
+        many=True,
+        write_only=True,
+        required=False,
+        help_text="Reemplaza todos los roles del miembro.",
     )
 
     class Meta:
         model = Membership
-        fields = ["id", "user", "is_owner", "is_active", "roles", "role_ids", "created_at"]
+        fields = [
+            "id",
+            "user",
+            "is_owner",
+            "is_active",
+            "assignments",
+            "set_assignments",
+            "created_at",
+        ]
         read_only_fields = ["id", "is_owner", "created_at"]
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        # Evaluado por petición: solo roles de la empresa activa.
-        field = cast(ManyRelatedField, self.fields["role_ids"])
-        field.child_relation.queryset = Role.objects.all()  # type: ignore[arg-type]
+    @extend_schema_field(AssignmentSerializer(many=True))
+    def get_assignments(self, membership: Membership) -> list[dict]:
+        return [
+            {
+                "role": {"id": a.role.pk, "name": a.role.name},
+                "projects": [
+                    {"id": p.pk, "code": p.code, "name": p.name}
+                    for p in sorted(a.projects.all(), key=lambda p: p.code)
+                ],
+            }
+            for a in membership.role_assignments.all()
+        ]
 
-    @extend_schema_field(RoleRefSerializer(many=True))
-    def get_roles(self, membership: Membership) -> list[dict]:
-        roles = [a.role for a in membership.role_assignments.all()]
-        return RoleRefSerializer(roles, many=True).data  # type: ignore[return-value]
+    def validate_set_assignments(self, value: list[dict]) -> list[dict]:
+        role_ids = [item["role_id"].pk for item in value]
+        if len(role_ids) != len(set(role_ids)):
+            raise serializers.ValidationError("Un rol no puede repetirse.")
+        return value
 
 
 class InvitationSerializer(serializers.ModelSerializer):

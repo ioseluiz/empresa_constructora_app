@@ -36,7 +36,7 @@ from .services import (
     find_invitation,
     invite_member,
     resend_invitation,
-    set_member_roles,
+    set_member_assignments,
 )
 
 
@@ -141,7 +141,9 @@ class MemberViewSet(
             .prefetch_related(
                 Prefetch(
                     "role_assignments",
-                    queryset=RoleAssignment.objects.select_related("role").order_by("role__name"),
+                    queryset=RoleAssignment.objects.select_related("role")
+                    .prefetch_related("projects")
+                    .order_by("role__name"),
                 )
             )
             .order_by("user__email")
@@ -149,9 +151,13 @@ class MemberViewSet(
 
     @staticmethod
     def _snapshot(m: Membership) -> dict:
+        def label(a: RoleAssignment) -> str:
+            codes = sorted(p.code for p in a.projects.all())
+            return f"{a.role.name} ({', '.join(codes)})" if codes else a.role.name
+
         return {
             "is_active": m.is_active,
-            "roles": sorted(a.role.name for a in m.role_assignments.all()),
+            "roles": sorted(label(a) for a in m.role_assignments.all()),
         }
 
     def perform_update(self, serializer: serializers.BaseSerializer) -> None:
@@ -161,10 +167,13 @@ class MemberViewSet(
         if membership.is_owner:
             raise ValidationError("El administrador principal de la empresa no se puede modificar.")
         before = self._snapshot(membership)
-        roles = serializer.validated_data.pop("role_ids", None)
+        assignments = serializer.validated_data.pop("set_assignments", None)
         serializer.save(updated_by=self.request.user)
-        if roles is not None:
-            set_member_roles(membership, roles)
+        if assignments is not None:
+            set_member_assignments(
+                membership,
+                [(item["role_id"], item.get("project_ids", [])) for item in assignments],
+            )
         membership = self.get_queryset().get(pk=membership.pk)
         serializer.instance = membership
         changes = audit.diff(before, self._snapshot(membership))

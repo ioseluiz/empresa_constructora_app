@@ -20,6 +20,11 @@ class Tenant(BaseModel):
     currency = models.CharField("moneda funcional", max_length=3, default="USD")
     timezone = models.CharField("zona horaria", max_length=64, default="America/Panama")
     is_active = models.BooleanField("activa", default=True)
+    applies_cba = models.BooleanField(
+        "aplica convención SUNTRACS–CAPAC",
+        default=True,
+        help_text="El personal de obra se rige por la convención colectiva de la construcción.",
+    )
     require_mfa = models.BooleanField(
         "exigir verificación en dos pasos",
         default=False,

@@ -31,7 +31,7 @@ const members = {
       },
       is_owner: true,
       is_active: true,
-      roles: [],
+      assignments: [],
       created_at: '2026-11-01T00:00:00Z',
     },
     {
@@ -45,7 +45,7 @@ const members = {
       },
       is_owner: false,
       is_active: true,
-      roles: [{ id: 'r1', name: 'Planillero' }],
+      assignments: [{ role: { id: 'r1', name: 'Planillero' }, projects: [] }],
       created_at: '2026-11-02T00:00:00Z',
     },
   ],
@@ -64,6 +64,17 @@ function mockApi() {
       )
     if (url.includes('/iam/members/')) return Promise.resolve(jsonResponse(members))
     if (url.includes('/iam/roles/')) return Promise.resolve(jsonResponse(roles))
+    if (url.includes('/projects/'))
+      return Promise.resolve(
+        jsonResponse({
+          count: 1,
+          next: null,
+          previous: null,
+          results: [{ id: 'p1', code: 'P-001', name: 'Torre Istmo' }],
+        }),
+      )
+    if (url.includes('/iam/members/') && init?.method === 'PATCH')
+      return Promise.resolve(jsonResponse(members.results[1]))
     if (url.includes('/iam/invitations/') && init?.method === 'POST')
       return Promise.resolve(jsonResponse({ id: 'i1' }, 201))
     if (url.includes('/iam/invitations/')) return Promise.resolve(jsonResponse([]))
@@ -86,6 +97,28 @@ describe('UsersPage', () => {
     expect(
       screen.queryByRole('button', { name: 'Editar ana@constructora.pa' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('limita un rol a proyectos y exige elegir al menos uno', async () => {
+    const fetchMock = mockApi()
+    renderWithProviders(<UsersPage />)
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Editar luis@constructora.pa' }),
+    )
+    const scope = await screen.findByLabelText('Alcance de Planillero')
+    await userEvent.selectOptions(scope, 'projects')
+    expect(screen.getByText('Selecciona al menos un proyecto.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar roles' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('sin ningún proyecto')
+
+    await userEvent.click(screen.getByLabelText(/Torre Istmo/))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar roles' }))
+    const call = fetchMock.mock.calls.find(
+      ([url, init]) => url.includes('/iam/members/m2/') && init?.method === 'PATCH',
+    )!
+    expect(JSON.parse(call[1]!.body as string)).toEqual({
+      set_assignments: [{ role_id: 'r1', project_ids: ['p1'] }],
+    })
   })
 
   it('invita a un usuario con roles', async () => {
