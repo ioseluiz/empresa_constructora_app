@@ -24,6 +24,9 @@ docker compose up --build
 - Frontend: http://localhost:5173
 - API: http://localhost:8000/api/v1/health/
 - Documentación de la API (Swagger): http://localhost:8000/api/v1/docs/
+- Datos de prueba: `make demo` crea dos empresas con un usuario administrador
+  (credenciales de desarrollo en el `Makefile`).
+- Los correos (recuperación de contraseña) se imprimen en los logs: `docker compose logs backend`.
 - Postgres y Redis se exponen en los puertos 5433 y 6380 (configurables con
   `POSTGRES_HOST_PORT` y `REDIS_HOST_PORT`) para no chocar con instalaciones locales.
 
@@ -54,6 +57,17 @@ make test   # pytest + vitest
 ```
 
 Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la raíz del repo).
+
+## Multiempresa y autenticación
+
+- Cada petición de negocio lleva `Authorization: Bearer <access>` y `X-Tenant-ID: <empresa>`.
+- El refresh token rota en cada uso y viaja solo en una cookie httpOnly (`/api/v1/auth/`).
+- Las vistas de negocio heredan de `apps.tenants.views.TenantScopedAPIView`.
+- Los modelos de negocio heredan de `apps.core.models.TenantAwareModel` y su migración debe
+  incluir `apps.core.rls.EnableTenantRLS("<Modelo>")` (una prueba lo verifica).
+- En producción la app debe conectarse a Postgres con un rol **sin** superusuario ni
+  `BYPASSRLS`; si no, PostgreSQL ignora las políticas de Row-Level Security.
+- Alta de empresas: `python manage.py create_tenant --name ... --owner-email ...`.
 
 ## Convenciones
 
