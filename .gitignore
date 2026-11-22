@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+backend/staticfiles/
+backend/media/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Terraform
+.terraform/
+*.tfstate*
+
+# Sistema / editores
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

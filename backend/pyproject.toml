@@ -1,0 +1,65 @@
+[project]
+name = "constructora-backend"
+version = "0.1.0"
+description = "API del SaaS de gestión para empresas constructoras"
+requires-python = ">=3.12"
+dependencies = [
+    "celery>=5.7.0",
+    "django>=5.2,<6",
+    "django-cors-headers>=4.9.0",
+    "django-environ>=0.14.0",
+    "django-filter>=26.2",
+    "djangorestframework>=3.18.3",
+    "drf-spectacular>=0.30.0",
+    "gunicorn>=27.0.1",
+    "psycopg[binary]>=3.3.9",
+    "redis>=8.1.0",
+    "whitenoise>=6.12.0",
+]
+
+[dependency-groups]
+dev = [
+    "django-stubs>=6.1.2",
+    "djangorestframework-stubs>=3.18.2",
+    "factory-boy>=3.3.3",
+    "mypy>=2.4.1",
+    "pre-commit>=4.7.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "pytest-django>=4.14.0",
+    "ruff>=0.17.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "C4", "SIM", "RUF"]
+ignore = ["RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106"]
+"config/settings/*" = ["F405", "F403"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+strict_optional = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+exclude = ["migrations/"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "tests.py"]
+addopts = "--reuse-db -ra"
+filterwarnings = ["ignore:No directory at:UserWarning"]
+
+[tool.coverage.run]
+source = ["apps", "config"]
+omit = ["*/migrations/*", "*/tests/*"]
