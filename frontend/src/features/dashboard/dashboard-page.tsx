@@ -2,7 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useProjectsList } from '@/api/generated/proyectos/proyectos'
+import { useAccess } from '@/features/access/use-access'
 import { useAuth } from '@/features/auth/use-auth'
+import { Link } from 'react-router-dom'
 
 interface Health {
   status: string
@@ -30,6 +33,11 @@ export function DashboardPage() {
     enabled: !!currentTenant,
   })
 
+  const { can } = useAccess()
+  const activeProjects = useProjectsList(
+    { status: 'active' },
+    { query: { enabled: !!currentTenant && can('projects.view') } },
+  )
   const apiOk = health.data?.status === 'ok'
   const firstName = user?.first_name || user?.full_name
 
@@ -56,6 +64,21 @@ export function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+        {can('projects.view') && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Proyectos en ejecución</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-end justify-between">
+              <p className="text-3xl font-semibold tabular-nums">
+                {activeProjects.data?.count ?? '—'}
+              </p>
+              <Link to="/proyectos" className="text-primary text-sm font-medium hover:underline">
+                Ver proyectos
+              </Link>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Estado del sistema</CardTitle>

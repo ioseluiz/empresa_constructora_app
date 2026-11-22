@@ -99,11 +99,11 @@ class TestMembers:
         m = Membership.objects.get(user=member)
         response = owner_api.patch(
             reverse("member-detail", args=[m.pk]),
-            {"role_ids": [str(roles["Contador"].pk)]},
+            {"set_assignments": [{"role_id": str(roles["Contador"].pk)}]},
             format="json",
         )
         assert response.status_code == 200, response.json()
-        assert [r["name"] for r in response.json()["roles"]] == ["Contador"]
+        assert [a["role"]["name"] for a in response.json()["assignments"]] == ["Contador"]
         with tenant_context(tenant):
             log = AuditLog.objects.get(object_type="tenants.membership")
         assert log.changes["roles"] == {"antes": ["Planillero"], "despues": ["Contador"]}
@@ -128,7 +128,7 @@ class TestMembers:
         m = Membership.objects.get(user=member)
         response = owner_api.patch(
             reverse("member-detail", args=[m.pk]),
-            {"role_ids": [str(foreign_role.pk)]},
+            {"set_assignments": [{"role_id": str(foreign_role.pk)}]},
             format="json",
         )
         assert response.status_code == 400

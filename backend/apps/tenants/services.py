@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.accounts.models import User
@@ -30,6 +31,9 @@ def create_tenant(
         owner = User.objects.create_user(owner_email, owner_password)
     Membership.objects.create(user=owner, tenant=tenant, is_owner=True)
     from apps.iam.services import create_default_roles
+    from apps.organization.services import bootstrap_organization
 
     create_default_roles(tenant)
+    year = timezone.localdate().year
+    bootstrap_organization(tenant, years=(year, year + 1))
     return tenant, owner

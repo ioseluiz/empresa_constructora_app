@@ -42,6 +42,8 @@ extend-exclude = ["**/migrations/*"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "C4", "SIM", "RUF"]
 ignore = ["RUF012"]
+# Texto en español con guiones tipográficos (SUNTRACS–CAPAC) es intencional.
+allowed-confusables = ["–"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106"]

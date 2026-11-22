@@ -5,8 +5,10 @@
  * API para la gestión de empresas constructoras.
  * OpenAPI spec version: 0.1.0
  */
+import type { AssignmentWriteRequest } from './assignmentWriteRequest';
 
 export interface PatchedMemberRequest {
   is_active?: boolean;
-  role_ids?: string[];
+  /** Reemplaza todos los roles del miembro. */
+  set_assignments?: AssignmentWriteRequest[];
 }

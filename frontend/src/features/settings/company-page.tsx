@@ -23,6 +23,7 @@ function CompanyForm({ tenant }: { tenant: Tenant }) {
     ruc: tenant.ruc ?? '',
     dv: tenant.dv ?? '',
     require_mfa: tenant.require_mfa ?? false,
+    applies_cba: tenant.applies_cba ?? true,
   })
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const update = useTenantCurrentPartialUpdate({
@@ -72,6 +73,20 @@ function CompanyForm({ tenant }: { tenant: Tenant }) {
         <p className="text-muted-foreground text-xs">
           País: Panamá · Moneda: {tenant.currency} · Zona horaria: {tenant.timezone}
         </p>
+      </Card>
+      <Card className="flex items-start justify-between gap-6 p-6">
+        <div className="space-y-1">
+          <h2 className="font-semibold">Convención colectiva SUNTRACS–CAPAC</h2>
+          <p className="text-muted-foreground text-sm">
+            El personal de obra se rige por la convención: se aplican sus tarifas mínimas por
+            categoría y el pago semanal.
+          </p>
+        </div>
+        <Switch
+          checked={form.applies_cba}
+          onCheckedChange={(v) => setForm({ ...form, applies_cba: v })}
+          aria-label="Aplica convención SUNTRACS–CAPAC"
+        />
       </Card>
       <Card className="flex items-start justify-between gap-6 p-6">
         <div className="space-y-1">

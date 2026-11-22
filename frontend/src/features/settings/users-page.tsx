@@ -13,7 +13,8 @@ import {
   useIamMembersPartialUpdate,
   useIamRolesList,
 } from '@/api/generated/iam/iam'
-import type { Member } from '@/api/generated/model'
+import type { Member, PatchedMemberRequest } from '@/api/generated/model'
+import { useProjectsList } from '@/api/generated/proyectos/proyectos'
 import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,7 @@ import { formatDateTime } from '@/lib/format'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { useAccess } from '@/features/access/use-access'
 import { useAuth } from '@/features/auth/use-auth'
+import { AssignmentEditor, type AssignmentDraft } from './assignment-editor'
 import { RolePicker } from './role-picker'
 
 function errorMessage(err: unknown) {
@@ -98,7 +100,15 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
 function EditMemberDialog({ member, onClose }: { member: Member; onClose: () => void }) {
   const queryClient = useQueryClient()
   const roles = useIamRolesList()
-  const [roleIds, setRoleIds] = useState<string[]>(() => member.roles.map((r) => r.id))
+  const projects = useProjectsList({ ordering: 'code' })
+  const [draft, setDraft] = useState<AssignmentDraft>(() =>
+    Object.fromEntries(
+      member.assignments.map((a) => [
+        a.role.id,
+        { scoped: a.projects.length > 0, projects: a.projects.map((p) => p.id) },
+      ]),
+    ),
+  )
   const [error, setError] = useState<string | null>(null)
   const update = useIamMembersPartialUpdate({
     mutation: {
@@ -109,12 +119,25 @@ function EditMemberDialog({ member, onClose }: { member: Member; onClose: () => 
       onError: (err) => setError(errorMessage(err)),
     },
   })
-  const save = (patch: { role_ids?: string[]; is_active?: boolean }) =>
-    update.mutate({ id: member.id, data: patch })
+  const save = (patch: PatchedMemberRequest) => update.mutate({ id: member.id, data: patch })
+  const saveRoles = () => {
+    if (Object.values(draft).some((a) => a.scoped && a.projects.length === 0)) {
+      setError('Hay roles limitados a proyectos sin ningún proyecto seleccionado.')
+      return
+    }
+    setError(null)
+    save({
+      set_assignments: Object.entries(draft).map(([role_id, a]) => ({
+        role_id,
+        project_ids: a.scoped ? a.projects : [],
+      })),
+    })
+  }
 
   return (
     <Dialog
       open
+      size="lg"
       onOpenChange={(o) => !o && onClose()}
       title={member.user.full_name}
       description={member.user.email}
@@ -128,7 +151,7 @@ function EditMemberDialog({ member, onClose }: { member: Member; onClose: () => 
           >
             {member.is_active ? 'Desactivar acceso' : 'Reactivar acceso'}
           </Button>
-          <Button onClick={() => save({ role_ids: roleIds })} loading={update.isPending}>
+          <Button onClick={saveRoles} loading={update.isPending}>
             Guardar roles
           </Button>
         </>
@@ -136,8 +159,13 @@ function EditMemberDialog({ member, onClose }: { member: Member; onClose: () => 
     >
       <div className="space-y-4">
         {error && <Alert>{error}</Alert>}
-        {roles.data ? (
-          <RolePicker roles={roles.data} value={roleIds} onChange={setRoleIds} />
+        {roles.data && projects.data ? (
+          <AssignmentEditor
+            roles={roles.data}
+            projects={projects.data.results}
+            value={draft}
+            onChange={setDraft}
+          />
         ) : (
           <LoadingBlock />
         )}
@@ -271,8 +299,17 @@ export function UsersPage() {
                   <TD>
                     <div className="flex flex-wrap gap-1">
                       {m.is_owner && <Badge variant="success">Administrador principal</Badge>}
-                      {m.roles.map((r) => (
-                        <Badge key={r.id}>{r.name}</Badge>
+                      {m.assignments.map((a) => (
+                        <Badge
+                          key={a.role.id}
+                          title={
+                            a.projects.map((p) => `${p.code} · ${p.name}`).join('\n') || undefined
+                          }
+                        >
+                          {a.role.name}
+                          {a.projects.length > 0 &&
+                            ` · ${a.projects.length === 1 ? a.projects[0].code : `${a.projects.length} proyectos`}`}
+                        </Badge>
                       ))}
                     </div>
                   </TD>

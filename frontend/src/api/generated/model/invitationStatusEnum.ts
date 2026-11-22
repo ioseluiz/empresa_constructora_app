@@ -11,10 +11,10 @@
  * * `accepted` - Aceptada
  * * `revoked` - Revocada
  */
-export type StatusEnum = typeof StatusEnum[keyof typeof StatusEnum];
+export type InvitationStatusEnum = typeof InvitationStatusEnum[keyof typeof InvitationStatusEnum];
 
 
-export const StatusEnum = {
+export const InvitationStatusEnum = {
   pending: 'pending',
   accepted: 'accepted',
   revoked: 'revoked',

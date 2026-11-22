@@ -1,5 +1,9 @@
 import {
+  BriefcaseBusiness,
   Building,
+  CalendarCheck,
+  Network,
+  Scale,
   CalendarDays,
   Clock,
   FileText,
@@ -30,7 +34,7 @@ export const navigation: NavSection[] = [
   {
     items: [
       { label: 'Inicio', to: '/', icon: LayoutDashboard },
-      { label: 'Proyectos', to: '/proyectos', icon: HardHat, sprint: 4 },
+      { label: 'Proyectos', to: '/proyectos', icon: HardHat, permission: 'projects.view' },
       { label: 'Empleados', to: '/empleados', icon: Users, sprint: 5 },
       { label: 'Marcaciones', to: '/marcaciones', icon: Clock, sprint: 6 },
       { label: 'Planilla', to: '/planilla', icon: Wallet, sprint: 8 },
@@ -59,6 +63,30 @@ export const navigation: NavSection[] = [
         to: '/configuracion/auditoria',
         icon: History,
         permission: 'audit.view',
+      },
+    ],
+  },
+  {
+    title: 'Catálogos',
+    items: [
+      {
+        label: 'Centros de costo',
+        to: '/catalogos/centros-de-costo',
+        icon: Network,
+        permission: 'org.manage',
+      },
+      {
+        label: 'Puestos',
+        to: '/catalogos/puestos',
+        icon: BriefcaseBusiness,
+        permission: 'org.manage',
+      },
+      { label: 'Convención', to: '/catalogos/convencion', icon: Scale, permission: 'org.manage' },
+      {
+        label: 'Feriados',
+        to: '/catalogos/feriados',
+        icon: CalendarCheck,
+        permission: 'org.manage',
       },
     ],
   },

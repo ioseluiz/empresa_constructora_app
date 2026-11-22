@@ -5,15 +5,15 @@
  * API para la gestión de empresas constructoras.
  * OpenAPI spec version: 0.1.0
  */
+import type { InvitationStatusEnum } from './invitationStatusEnum';
 import type { RoleRef } from './roleRef';
-import type { StatusEnum } from './statusEnum';
 
 export interface Invitation {
   readonly id: string;
   /** @maxLength 254 */
   email: string;
   readonly roles: readonly RoleRef[];
-  readonly status: StatusEnum;
+  readonly status: InvitationStatusEnum;
   readonly expires_at: string;
   readonly is_expired: boolean;
   readonly invited_by: string;

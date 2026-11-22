@@ -12,6 +12,15 @@ import { AuditPage } from '@/features/settings/audit-page'
 import { CompanyPage } from '@/features/settings/company-page'
 import { RolesPage } from '@/features/settings/roles-page'
 import { UsersPage } from '@/features/settings/users-page'
+import { CbaPage } from '@/features/catalogs/cba-page'
+import { CostCentersPage } from '@/features/catalogs/cost-centers-page'
+import { HolidaysPage } from '@/features/catalogs/holidays-page'
+import { PositionsPage } from '@/features/catalogs/positions-page'
+import { ProjectsPage } from '@/features/projects/projects-page'
+
+function guarded(permission: string, page: React.ReactNode) {
+  return <RequirePermission permission={permission}>{page}</RequirePermission>
+}
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +41,14 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'cuenta/seguridad', element: <SecurityPage /> },
+          { path: 'proyectos', element: guarded('projects.view', <ProjectsPage />) },
+          {
+            path: 'catalogos/centros-de-costo',
+            element: guarded('org.manage', <CostCentersPage />),
+          },
+          { path: 'catalogos/puestos', element: guarded('org.manage', <PositionsPage />) },
+          { path: 'catalogos/convencion', element: guarded('org.manage', <CbaPage />) },
+          { path: 'catalogos/feriados', element: guarded('org.manage', <HolidaysPage />) },
           {
             path: 'configuracion/empresa',
             element: (

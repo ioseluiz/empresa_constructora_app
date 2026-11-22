@@ -4,3 +4,5 @@ export * from './empresa/empresa';
 export * from './health/health';
 export * from './iam/iam';
 export * from './mfa/mfa';
+export * from './organizacion/organizacion';
+export * from './proyectos/proyectos';

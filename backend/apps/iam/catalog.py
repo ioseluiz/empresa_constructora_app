@@ -22,6 +22,11 @@ PERMISSIONS: tuple[Perm, ...] = (
     Perm("users.manage", "Invitar, editar y desactivar usuarios", "Administración"),
     Perm("roles.manage", "Crear y editar roles", "Administración"),
     Perm("audit.view", "Ver bitácora de auditoría", "Administración"),
+    Perm(
+        "org.manage",
+        "Configurar catálogos (centros de costo, puestos, convención, feriados)",
+        "Administración",
+    ),
     # Proyectos (Sprint 4)
     Perm("projects.view", "Ver proyectos y centros de costo", "Proyectos"),
     Perm("projects.manage", "Crear y editar proyectos", "Proyectos"),
@@ -73,6 +78,7 @@ DEFAULT_ROLES: dict[str, dict] = {
             "leave.manage",
             "leave.approve",
             "users.view",
+            "org.manage",
         ],
     },
     "Planillero": {
@@ -100,6 +106,7 @@ DEFAULT_ROLES: dict[str, dict] = {
             "payroll.reports",
             "payroll.config",
             "leave.view",
+            "org.manage",
         ],
     },
     "Jefe de proyecto": {

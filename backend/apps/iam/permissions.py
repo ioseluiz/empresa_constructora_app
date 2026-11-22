@@ -1,12 +1,13 @@
 from typing import Any
 
+from django.db.models import QuerySet
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from apps.tenants.permissions import IsTenantMember
 
-from .services import effective_permissions
+from .services import ALL_PROJECTS, Scope, effective_permissions, permission_scope
 
 
 def get_request_permissions(request: Request) -> set[str]:
@@ -15,6 +16,25 @@ def get_request_permissions(request: Request) -> set[str]:
         cached = effective_permissions(request.membership)  # type: ignore[attr-defined]
         request._tenant_permissions = cached  # type: ignore[attr-defined]
     return cached
+
+
+def get_request_scope(request: Request, permission: str) -> Scope:
+    cache: dict[str, Scope] = request.__dict__.setdefault("_tenant_scopes", {})
+    if permission not in cache:
+        cache[permission] = permission_scope(request.membership, permission)  # type: ignore[attr-defined]
+    return cache[permission]
+
+
+def filter_by_project_scope(
+    queryset: QuerySet, request: Request, permission: str, project_field: str = "project"
+) -> QuerySet:
+    """Restringe un queryset a los proyectos donde el usuario tiene `permission`.
+    `project_field` es la ruta al proyecto (p. ej. "pk" para Project, "project" para modelos
+    relacionados)."""
+    scope = get_request_scope(request, permission)
+    if scope == ALL_PROJECTS:
+        return queryset
+    return queryset.filter(**{f"{project_field}__in": scope})
 
 
 class HasTenantPermission(BasePermission):

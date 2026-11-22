@@ -39,6 +39,7 @@ class TenantSerializer(serializers.ModelSerializer):
             "country",
             "currency",
             "timezone",
+            "applies_cba",
             "require_mfa",
         ]
         read_only_fields = ["id", "slug", "country", "currency"]

@@ -5,8 +5,8 @@
  * API para la gestión de empresas constructoras.
  * OpenAPI spec version: 0.1.0
  */
+import type { Assignment } from './assignment';
 import type { MemberUser } from './memberUser';
-import type { RoleRef } from './roleRef';
 
 export interface Member {
   readonly id: string;
@@ -14,6 +14,6 @@ export interface Member {
   /** Administrador principal de la empresa: tiene todos los permisos. */
   readonly is_owner: boolean;
   is_active?: boolean;
-  readonly roles: readonly RoleRef[];
+  readonly assignments: readonly Assignment[];
   readonly created_at: string;
 }

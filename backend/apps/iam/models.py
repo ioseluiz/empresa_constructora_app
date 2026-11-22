@@ -46,8 +46,8 @@ class Role(TenantAwareModel):
 
 
 class RoleAssignment(TenantAwareModel):
-    """Rol asignado a un miembro. Alcance actual: toda la empresa.
-    En el Sprint 4 se agrega `projects` (M2M) para limitar el rol a obras específicas."""
+    """Rol asignado a un miembro. Sin proyectos = aplica a toda la empresa; con proyectos =
+    el rol solo aplica a esas obras (p. ej. un jefe de proyecto que solo ve la suya)."""
 
     membership = models.ForeignKey(
         "tenants.Membership",
@@ -57,6 +57,13 @@ class RoleAssignment(TenantAwareModel):
     )
     role = models.ForeignKey(
         Role, verbose_name="rol", on_delete=models.PROTECT, related_name="assignments"
+    )
+    projects = models.ManyToManyField(
+        "projects.Project",
+        verbose_name="proyectos",
+        blank=True,
+        related_name="+",
+        help_text="Vacío: el rol aplica a todos los proyectos.",
     )
 
     class Meta:

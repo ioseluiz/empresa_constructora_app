@@ -83,6 +83,17 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
 - MFA (TOTP) por usuario; cada empresa puede exigirlo. Los secretos se cifran con
   `MFA_ENCRYPTION_KEY`.
 
+## Organización y proyectos
+
+- Cada empresa nueva arranca con: centro de costo "Oficina central", categorías de la convención
+  SUNTRACS–CAPAC (sin tarifas: se cargan desde la convención vigente), puestos habituales y los
+  feriados nacionales del año en curso y el siguiente (`apps/organization/panama.py`).
+- Cada proyecto crea y mantiene sincronizado su propio centro de costo.
+- Un rol asignado sin proyectos aplica a toda la empresa; con proyectos, solo a esas obras.
+  Las vistas filtran con `apps.iam.permissions.filter_by_project_scope(...)`.
+- Los permisos nuevos que se agreguen al catálogo requieren una migración de datos que los sume a
+  los roles plantilla existentes (ver `iam/0004`).
+
 ## Cliente de la API (orval)
 
 El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:
