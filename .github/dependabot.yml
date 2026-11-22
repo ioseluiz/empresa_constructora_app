@@ -3,6 +3,10 @@ updates:
   - package-ecosystem: uv
     directory: /backend
     schedule: { interval: weekly }
+    ignore:
+      # Nos quedamos en Django 5.2 LTS; el salto a la siguiente LTS se planifica aparte.
+      - dependency-name: django
+        versions: [">=6"]
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly }
@@ -14,3 +18,7 @@ updates:
   - package-ecosystem: docker
     directory: /backend
     schedule: { interval: monthly }
+    ignore:
+      # La versión de Python se sube a mano junto con .python-version y la CI.
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
