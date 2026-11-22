@@ -23,6 +23,7 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
 ]
 THIRD_PARTY_APPS = [
     "rest_framework",
@@ -35,6 +36,8 @@ LOCAL_APPS = [
     "apps.core",
     "apps.accounts",
     "apps.tenants",
+    "apps.iam",
+    "apps.audit",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -117,6 +120,7 @@ REST_FRAMEWORK = {
         "login": env("THROTTLE_LOGIN", default="10/min"),
         "refresh": env("THROTTLE_REFRESH", default="60/min"),
         "password_reset": env("THROTTLE_PASSWORD_RESET", default="5/hour"),
+        "mfa": env("THROTTLE_MFA", default="10/min"),
     },
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_FILTER_BACKENDS": [
@@ -128,6 +132,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 50,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "COERCE_DECIMAL_TO_STRING": True,
+    "EXCEPTION_HANDLER": "apps.core.exceptions.exception_handler",
 }
 
 SPECTACULAR_SETTINGS = {
@@ -153,6 +158,14 @@ SIMPLE_JWT = {
 }
 AUTH_COOKIE_SECURE = env.bool("AUTH_COOKIE_SECURE", default=not DEBUG)
 AUTH_COOKIE_PATH = "/api/v1/auth/"
+
+# Clave Fernet (32 bytes en base64 url-safe) para cifrar secretos MFA. Si se omite se deriva
+# de SECRET_KEY; en producción conviene una clave propia para poder rotar SECRET_KEY.
+MFA_ENCRYPTION_KEY = env("MFA_ENCRYPTION_KEY", default="")
+
+# Cantidad de proxies propios delante de la app (balanceador, CDN) para leer la IP real del
+# cliente desde X-Forwarded-For. 0 = usar REMOTE_ADDR.
+NUM_PROXIES = env.int("NUM_PROXIES", default=0)
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 2  # 2 horas

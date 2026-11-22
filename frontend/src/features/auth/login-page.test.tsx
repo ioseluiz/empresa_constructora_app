@@ -32,3 +32,20 @@ describe('LoginPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Correo o contraseña incorrectos.')
   })
 })
+
+describe('LoginPage con verificación en dos pasos', () => {
+  it('pide el código y lo verifica', async () => {
+    const login = vi.fn().mockResolvedValue({ mfaToken: 'tok' })
+    const verifyMfa = vi.fn().mockResolvedValue(undefined)
+    renderWithProviders(<LoginPage />, { status: 'anonymous', login, verifyMfa })
+    await userEvent.type(screen.getByLabelText('Correo electrónico'), 'ana@constructora.pa')
+    await userEvent.type(screen.getByLabelText('Contraseña'), 'secreta')
+    await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }))
+
+    expect(await screen.findByText('Verificación en dos pasos')).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Código'), '12ab3456')
+    expect(screen.getByLabelText('Código')).toHaveValue('123456') // solo dígitos
+    await userEvent.click(screen.getByRole('button', { name: 'Verificar' }))
+    expect(verifyMfa).toHaveBeenCalledWith('tok', '123456')
+  })
+})

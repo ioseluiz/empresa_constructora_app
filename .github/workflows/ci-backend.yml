@@ -2,7 +2,7 @@ name: CI Backend
 
 on:
   pull_request:
-    paths: ["backend/**", ".github/workflows/ci-backend.yml"]
+    paths: ["backend/**", "frontend/openapi.json", ".github/workflows/ci-backend.yml"]
   push:
     branches: [main]
     paths: ["backend/**", ".github/workflows/ci-backend.yml"]
@@ -52,6 +52,13 @@ jobs:
         run: uv run pytest --cov --cov-report=term --cov-report=xml
       - name: Esquema OpenAPI válido
         run: uv run python manage.py spectacular --validate --fail-on-warn --file /tmp/schema.yml
+      - name: Esquema del frontend al día
+        run: |
+          uv run python manage.py spectacular --format openapi-json --file ../frontend/openapi.json
+          git diff --exit-code -- ../frontend/openapi.json || {
+            echo "::error::frontend/openapi.json está desactualizado. Ejecuta 'make schema' y commitea."
+            exit 1
+          }
 
   docker:
     runs-on: ubuntu-latest

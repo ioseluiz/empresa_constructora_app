@@ -1,9 +1,11 @@
 import { Building2, Moon, Sun } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useAccess } from '@/features/access/use-access'
 import { useAuth } from '@/features/auth/use-auth'
 import { cn } from '@/lib/utils'
 import { NoTenant } from './no-tenant'
+import { MfaRequired } from './mfa-required'
 import { navigation } from './navigation'
 import { TenantSwitcher } from './tenant-switcher'
 import { UserMenu } from './user-menu'
@@ -26,6 +28,9 @@ function useTheme() {
 export function AppLayout() {
   const { dark, toggle } = useTheme()
   const { currentTenant } = useAuth()
+  const { can, mfaSetupRequired } = useAccess()
+  const location = useLocation()
+  const showMfaWall = mfaSetupRequired && location.pathname !== '/cuenta/seguridad'
 
   if (!currentTenant) return <NoTenant />
 
@@ -38,37 +43,53 @@ export function AppLayout() {
           </span>
           <span className="font-semibold tracking-tight">Constructora</span>
         </div>
-        <nav className="flex flex-1 flex-col gap-0.5 px-3 py-2" aria-label="Principal">
-          {navigation.map((item) =>
-            item.sprint ? (
-              <span
-                key={item.to}
-                className="text-sidebar-muted flex items-center gap-3 rounded-md px-3 py-2 text-sm"
-                title="Próximamente"
-              >
-                <item.icon className="size-4" />
-                {item.label}
-                <span className="ml-auto text-[10px] tracking-wide uppercase opacity-70">
-                  Pronto
-                </span>
-              </span>
-            ) : (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end
-                className={({ isActive }) =>
-                  cn(
-                    'hover:bg-sidebar-active flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                    isActive && 'bg-sidebar-active font-medium',
-                  )
-                }
-              >
-                <item.icon className="size-4" />
-                {item.label}
-              </NavLink>
-            ),
-          )}
+        <nav
+          className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-2"
+          aria-label="Principal"
+        >
+          {navigation.map((section, i) => {
+            const items = section.items.filter((item) => !item.permission || can(item.permission))
+            if (items.length === 0) return null
+            return (
+              <div key={section.title ?? i} className="flex flex-col gap-0.5">
+                {section.title && (
+                  <p className="text-sidebar-muted px-3 pb-1 text-[11px] font-medium tracking-wide uppercase">
+                    {section.title}
+                  </p>
+                )}
+                {items.map((item) =>
+                  item.sprint ? (
+                    <span
+                      key={item.to}
+                      className="text-sidebar-muted flex items-center gap-3 rounded-md px-3 py-2 text-sm"
+                      title="Próximamente"
+                    >
+                      <item.icon className="size-4" />
+                      {item.label}
+                      <span className="ml-auto text-[10px] tracking-wide uppercase opacity-70">
+                        Pronto
+                      </span>
+                    </span>
+                  ) : (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.to === '/'}
+                      className={({ isActive }) =>
+                        cn(
+                          'hover:bg-sidebar-active flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                          isActive && 'bg-sidebar-active font-medium',
+                        )
+                      }
+                    >
+                      <item.icon className="size-4" />
+                      {item.label}
+                    </NavLink>
+                  ),
+                )}
+              </div>
+            )
+          })}
         </nav>
       </aside>
 
@@ -87,9 +108,7 @@ export function AppLayout() {
             <UserMenu />
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-8">
-          <Outlet />
-        </main>
+        <main className="flex-1 p-4 md:p-8">{showMfaWall ? <MfaRequired /> : <Outlet />}</main>
       </div>
     </div>
   )

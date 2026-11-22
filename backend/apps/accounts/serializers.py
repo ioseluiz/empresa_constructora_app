@@ -2,6 +2,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.tenants.models import Membership
@@ -18,10 +19,11 @@ class MembershipSerializer(serializers.ModelSerializer):
     tenant_id = serializers.UUIDField(source="tenant.id", read_only=True)
     tenant_name = serializers.CharField(source="tenant.name", read_only=True)
     tenant_slug = serializers.CharField(source="tenant.slug", read_only=True)
+    require_mfa = serializers.BooleanField(source="tenant.require_mfa", read_only=True)
 
     class Meta:
         model = Membership
-        fields = ["tenant_id", "tenant_name", "tenant_slug", "is_owner"]
+        fields = ["tenant_id", "tenant_name", "tenant_slug", "is_owner", "require_mfa"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -30,9 +32,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "email", "first_name", "last_name", "full_name", "memberships"]
-        read_only_fields = ["id", "email"]
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "full_name",
+            "mfa_enabled",
+            "memberships",
+        ]
+        read_only_fields = ["id", "email", "mfa_enabled"]
 
+    @extend_schema_field(MembershipSerializer(many=True))
     def get_memberships(self, user: User) -> list[dict]:
         qs = (
             Membership.objects.filter(user=user, is_active=True, tenant__is_active=True)
@@ -87,3 +98,41 @@ class PasswordChangeSerializer(serializers.Serializer):
     def validate_new_password(self, value: str) -> str:
         password_validation.validate_password(value, self.context["request"].user)
         return value
+
+
+class LoginResultSerializer(serializers.Serializer):
+    """Respuesta del login: sesión completa, o `mfa_required` con un token intermedio."""
+
+    access = serializers.CharField(required=False)
+    user = UserSerializer(required=False)
+    mfa_required = serializers.BooleanField(required=False)
+    mfa_token = serializers.CharField(required=False)
+
+
+class MFALoginSerializer(serializers.Serializer):
+    mfa_token = serializers.CharField()
+    code = serializers.CharField(max_length=20)
+
+
+class MFAStatusSerializer(serializers.Serializer):
+    enabled = serializers.BooleanField()
+    recovery_codes_remaining = serializers.IntegerField()
+
+
+class MFASetupSerializer(serializers.Serializer):
+    secret = serializers.CharField()
+    otpauth_uri = serializers.CharField()
+    qr_svg = serializers.CharField()
+
+
+class MFACodeSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=20)
+
+
+class MFADisableSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
+    code = serializers.CharField(max_length=20)
+
+
+class RecoveryCodesSerializer(serializers.Serializer):
+    recovery_codes = serializers.ListField(child=serializers.CharField())

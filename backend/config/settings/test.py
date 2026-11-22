@@ -15,5 +15,6 @@ REST_FRAMEWORK = {
         "login": "1000/min",
         "refresh": "1000/min",
         "password_reset": "1000/min",
+        "mfa": "1000/min",
     },
 }

@@ -20,6 +20,11 @@ class Tenant(BaseModel):
     currency = models.CharField("moneda funcional", max_length=3, default="USD")
     timezone = models.CharField("zona horaria", max_length=64, default="America/Panama")
     is_active = models.BooleanField("activa", default=True)
+    require_mfa = models.BooleanField(
+        "exigir verificación en dos pasos",
+        default=False,
+        help_text="Los usuarios sin MFA no podrán acceder a los datos de la empresa.",
+    )
 
     class Meta:
         verbose_name = "empresa"
@@ -43,7 +48,7 @@ class Membership(BaseModel):
     is_owner = models.BooleanField(
         "propietario",
         default=False,
-        help_text="Administrador principal de la empresa (los roles llegan en el Sprint 3).",
+        help_text="Administrador principal de la empresa: tiene todos los permisos.",
     )
     is_active = models.BooleanField("activa", default=True)
 

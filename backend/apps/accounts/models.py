@@ -51,6 +51,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField("fecha de registro", default=timezone.now)
 
+    # Autenticación de dos factores (TOTP). El secreto se guarda cifrado (ver mfa.py).
+    mfa_enabled = models.BooleanField("MFA activo", default=False)
+    mfa_secret = models.TextField(blank=True, editable=False)
+    mfa_last_used_step = models.BigIntegerField(default=0, editable=False)
+
     objects: ClassVar[UserManager] = UserManager()
 
     USERNAME_FIELD = "email"
@@ -72,3 +77,50 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}".strip() or self.email
+
+
+class MFARecoveryCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="mfa_recovery_codes")
+    code_hash = models.CharField(max_length=64)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "código de recuperación MFA"
+        verbose_name_plural = "códigos de recuperación MFA"
+
+    def __str__(self) -> str:
+        return f"Código de {self.user}"
+
+
+class SecurityEvent(models.Model):
+    """Eventos de seguridad de la cuenta (no pertenecen a una empresa)."""
+
+    class Type(models.TextChoices):
+        LOGIN_SUCCESS = "login_success", "Inicio de sesión"
+        LOGIN_FAILED = "login_failed", "Inicio de sesión fallido"
+        LOGOUT = "logout", "Cierre de sesión"
+        PASSWORD_RESET_REQUESTED = "password_reset_requested", "Solicitud de recuperación"
+        PASSWORD_RESET_DONE = "password_reset_done", "Contraseña restablecida"
+        PASSWORD_CHANGED = "password_changed", "Contraseña cambiada"
+        MFA_ENABLED = "mfa_enabled", "MFA activado"
+        MFA_DISABLED = "mfa_disabled", "MFA desactivado"
+        MFA_FAILED = "mfa_failed", "Código MFA incorrecto"
+        MFA_RECOVERY_USED = "mfa_recovery_used", "Código de recuperación usado"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True, related_name="security_events"
+    )
+    email = models.EmailField(blank=True)
+    type = models.CharField(max_length=32, choices=Type.choices)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "evento de seguridad"
+        verbose_name_plural = "eventos de seguridad"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.get_type_display()} {self.email}"

@@ -115,24 +115,34 @@ class TestRowLevelSecurity:
             cursor.execute("ROLLBACK TO SAVEPOINT rls")
 
 
+# Tablas con columna tenant que NO llevan RLS a propósito (se consultan antes de conocer
+# la empresa activa: login y selector de empresa).
+RLS_EXEMPT = {"tenants_membership"}
+
+
 @pytest.mark.django_db
 def test_all_tenant_tables_have_rls():
-    """Barrera contra olvidos: toda tabla de un TenantAwareModel debe tener RLS forzado."""
-    tables = [
+    """Barrera contra olvidos: toda tabla con FK a la empresa debe tener RLS forzado."""
+    tables = {
         m._meta.db_table
         for m in apps.get_models()
-        if issubclass(m, TenantAwareModel) and m is not Obra and not m._meta.proxy
-    ]
-    if not tables:
-        pytest.skip("Aún no hay modelos de negocio por empresa (llegan en el Sprint 4).")
+        if m is not Obra
+        and not m._meta.proxy
+        and any(
+            f.name == "tenant" and getattr(f.related_model, "__name__", "") == "Tenant"
+            for f in m._meta.get_fields()
+            if f.concrete
+        )
+    } - RLS_EXEMPT
+    assert "iam_role" in tables and "audit_auditlog" in tables
     with connection.cursor() as cursor:
         cursor.execute(
             "SELECT relname FROM pg_class WHERE relname = ANY(%s) "
             "AND relrowsecurity AND relforcerowsecurity",
-            [tables],
+            [list(tables)],
         )
         protected = {r[0] for r in cursor.fetchall()}
-    assert set(tables) == protected, f"Tablas sin RLS: {set(tables) - protected}"
+    assert tables == protected, f"Tablas sin RLS: {tables - protected}"
 
 
 def test_nested_context_restores_db_setting(obras, tenant, other_tenant):

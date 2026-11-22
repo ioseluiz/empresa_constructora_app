@@ -61,15 +61,70 @@ class BaseModel(UUIDModel, AuditedModel):
         abstract = True
 
 
-class TenantManager(models.Manager):
-    """Manager por defecto de los modelos de empresa: siempre filtra por el tenant activo
-    y falla en voz alta si no hay ninguno."""
+class TenantQuerySet(models.QuerySet):
+    """QuerySet que aplica el filtro de empresa al momento de ejecutarse.
 
-    def get_queryset(self) -> models.QuerySet:
-        qs = super().get_queryset()
+    Si se construye sin empresa activa (p. ej. al importar módulos: django-filter y DRF
+    crean querysets en tiempo de definición de clases), el filtro queda pendiente y se aplica
+    con la empresa activa al evaluarlo. Si al evaluar sigue sin haber empresa, falla.
+    """
+
+    _tenant_pending = False
+
+    def _clone(self) -> "TenantQuerySet":
+        clone = super()._clone()  # type: ignore[misc]
+        clone._tenant_pending = self._tenant_pending
+        return clone
+
+    def _apply_tenant_filter(self) -> None:
+        if not self._tenant_pending:
+            return
+        if not is_tenant_scope_bypassed():
+            self.query.add_q(models.Q(tenant=require_current_tenant()))
+        self._tenant_pending = False
+
+    def _fetch_all(self) -> None:
+        self._apply_tenant_filter()
+        super()._fetch_all()
+
+    def iterator(self, *args: Any, **kwargs: Any) -> Any:
+        self._apply_tenant_filter()
+        return super().iterator(*args, **kwargs)
+
+    def count(self) -> int:
+        self._apply_tenant_filter()
+        return super().count()
+
+    def exists(self) -> bool:
+        self._apply_tenant_filter()
+        return super().exists()
+
+    def aggregate(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        self._apply_tenant_filter()
+        return super().aggregate(*args, **kwargs)
+
+    def update(self, **kwargs: Any) -> int:
+        self._apply_tenant_filter()
+        return super().update(**kwargs)
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        self._apply_tenant_filter()
+        return super().delete()
+
+
+class TenantManager(models.Manager.from_queryset(TenantQuerySet)):  # type: ignore[misc]
+    """Manager por defecto de los modelos de empresa: siempre filtra por el tenant activo
+    y falla en voz alta si se ejecuta una consulta sin ninguno."""
+
+    def get_queryset(self) -> TenantQuerySet:
+        qs: TenantQuerySet = super().get_queryset()
         if is_tenant_scope_bypassed():
             return qs
-        return qs.filter(tenant=require_current_tenant())
+        tenant = get_current_tenant()
+        if tenant is not None:
+            return qs.filter(tenant=tenant)
+        qs._tenant_pending = True
+        return qs
 
 
 class TenantAwareModel(BaseModel):

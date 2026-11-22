@@ -12,8 +12,15 @@ export const testUser: User = {
   first_name: 'Ana',
   last_name: 'Pérez',
   full_name: 'Ana Pérez',
+  mfa_enabled: false,
   memberships: [
-    { tenant_id: 't1', tenant_name: 'Constructora Istmo', tenant_slug: 'istmo', is_owner: true },
+    {
+      tenant_id: 't1',
+      tenant_name: 'Constructora Istmo',
+      tenant_slug: 'istmo',
+      is_owner: true,
+      require_mfa: false,
+    },
   ],
 }
 
@@ -23,6 +30,9 @@ export function renderWithProviders(ui: ReactElement, auth: Partial<AuthContextV
     user: testUser,
     currentTenant: testUser.memberships[0],
     login: vi.fn(),
+    verifyMfa: vi.fn(),
+    startSession: vi.fn(),
+    refreshUser: vi.fn(),
     logout: vi.fn(),
     selectTenant: vi.fn(),
     ...auth,

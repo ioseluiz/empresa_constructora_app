@@ -67,7 +67,31 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
   incluir `apps.core.rls.EnableTenantRLS("<Modelo>")` (una prueba lo verifica).
 - En producción la app debe conectarse a Postgres con un rol **sin** superusuario ni
   `BYPASSRLS`; si no, PostgreSQL ignora las políticas de Row-Level Security.
-- Alta de empresas: `python manage.py create_tenant --name ... --owner-email ...`.
+- Alta de empresas: `python manage.py create_tenant --name ... --owner-email ...` (crea también
+  los roles plantilla).
+- Las migraciones **de datos** sobre tablas con RLS deben ejecutar
+  `SELECT set_config('app.bypass_rls', 'on', true)` al inicio (ver `iam/0002`).
+
+## Roles, permisos y auditoría
+
+- El catálogo de permisos vive en `backend/apps/iam/catalog.py` (código `recurso.acción`). Cada
+  módulo nuevo agrega ahí sus permisos y, si aplica, los suma a los roles plantilla.
+- Las vistas de negocio usan `apps.iam.permissions.TenantPermissionMixin` y declaran
+  `permission_resource`, `required_permission` o `action_permissions`.
+- Los cambios relevantes se registran con `apps.audit.services.record(...)`. La bitácora es de
+  solo inserción (un trigger de Postgres impide modificarla o borrarla).
+- MFA (TOTP) por usuario; cada empresa puede exigirlo. Los secretos se cifran con
+  `MFA_ENCRYPTION_KEY`.
+
+## Cliente de la API (orval)
+
+El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:
+
+```bash
+make schema   # exporta frontend/openapi.json y regenera frontend/src/api/generated
+```
+
+La CI falla si el esquema o el cliente generado no están al día con el backend.
 
 ## Convenciones
 
