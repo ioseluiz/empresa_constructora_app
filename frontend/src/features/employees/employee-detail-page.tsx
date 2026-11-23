@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { AssignmentsTab } from './assignments-tab'
 import { EMPLOYEE_STATUS, MARITAL_STATUS } from './constants'
 import { ContractsTab } from './contracts-tab'
+import { DeductionsTab } from './deductions-tab'
 import { DocumentsTab } from './documents-tab'
 import { EmployeeDialog } from './employee-dialog'
 
@@ -23,6 +24,7 @@ const TABS = [
   { id: 'contratos', label: 'Contratos y salario' },
   { id: 'proyectos', label: 'Proyectos' },
   { id: 'documentos', label: 'Documentos' },
+  { id: 'descuentos', label: 'Descuentos', permission: 'payroll.view' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -176,7 +178,7 @@ export function EmployeeDetailPage() {
         aria-label="Expediente"
         className="flex gap-1 overflow-x-auto overflow-y-hidden border-b"
       >
-        {TABS.map((t) => (
+        {TABS.filter((t) => !('permission' in t) || can(t.permission)).map((t) => (
           <button
             key={t.id}
             role="tab"
@@ -200,6 +202,7 @@ export function EmployeeDetailPage() {
         {tab === 'contratos' && <ContractsTab employee={e} />}
         {tab === 'proyectos' && <AssignmentsTab employee={e} />}
         {tab === 'documentos' && <DocumentsTab employee={e} />}
+        {tab === 'descuentos' && <DeductionsTab employee={e} />}
       </div>
       {editing && <EmployeeDialog employee={e} onClose={() => setEditing(false)} />}
     </div>

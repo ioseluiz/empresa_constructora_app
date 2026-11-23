@@ -4336,6 +4336,686 @@
                 }
             }
         },
+        "/api/v1/payroll/concepts/": {
+            "get": {
+                "operationId": "payroll_concepts_list",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "is_active",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "kind",
+                        "schema": {
+                            "type": "string",
+                            "title": "Tipo",
+                            "enum": [
+                                "deduction",
+                                "earning",
+                                "employer",
+                                "provision"
+                            ]
+                        },
+                        "description": "* `earning` - Ingreso\n* `deduction` - Deducción\n* `employer` - Aporte patronal\n* `provision` - Provisión"
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PayrollConcept"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "payroll_concepts_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollConceptRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollConceptRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollConceptRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollConcept"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/concepts/{id}/": {
+            "get": {
+                "operationId": "payroll_concepts_retrieve",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este concepto de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollConcept"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "payroll_concepts_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este concepto de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollConceptRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollConceptRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollConceptRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollConcept"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "payroll_concepts_partial_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este concepto de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPayrollConceptRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPayrollConceptRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPayrollConceptRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollConcept"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "payroll_concepts_destroy",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este concepto de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/deductions/": {
+            "get": {
+                "operationId": "payroll_deductions_list",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "concept",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "is_active",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/RecurringDeduction"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "payroll_deductions_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RecurringDeductionRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RecurringDeductionRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RecurringDeductionRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RecurringDeduction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/deductions/{id}/": {
+            "get": {
+                "operationId": "payroll_deductions_retrieve",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este descuento recurrente.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RecurringDeduction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "payroll_deductions_partial_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este descuento recurrente.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedRecurringDeductionRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedRecurringDeductionRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedRecurringDeductionRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RecurringDeduction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/legal-parameters/": {
+            "get": {
+                "operationId": "payroll_legal_parameters_list",
+                "description": "Parámetros legales vigentes y su historial (los administra la plataforma).",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "country",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "key",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/LegalParameter"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/preview/": {
+            "post": {
+                "operationId": "payroll_preview_create",
+                "description": "Simula la planilla de un empleado en un período, con el detalle de cada concepto.\nNo guarda nada.",
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PreviewRequestRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PreviewRequestRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PreviewRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PreviewResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/settings/": {
+            "get": {
+                "operationId": "payroll_settings_retrieve",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollSettings"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "payroll_settings_partial_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPayrollSettingsRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPayrollSettingsRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPayrollSettingsRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollSettings"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/projects/": {
             "get": {
                 "operationId": "projects_list",
@@ -9622,6 +10302,73 @@
                 "type": "string",
                 "description": "* `day` - Diurna\n* `night` - Nocturna\n* `mixed` - Mixta"
             },
+            "LegalParameter": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "country": {
+                        "type": "string",
+                        "readOnly": true,
+                        "default": "PA",
+                        "title": "País"
+                    },
+                    "key": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Clave"
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Nombre"
+                    },
+                    "value": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,6})?$",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Valor"
+                    },
+                    "table": {
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Tabla",
+                        "description": "Para tablas por tramos."
+                    },
+                    "valid_from": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "title": "Vigente desde"
+                    },
+                    "legal_basis": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Base legal"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Notas"
+                    }
+                },
+                "required": [
+                    "country",
+                    "id",
+                    "key",
+                    "legal_basis",
+                    "name",
+                    "notes",
+                    "table",
+                    "valid_from",
+                    "value"
+                ]
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -10949,6 +11696,88 @@
                     }
                 }
             },
+            "PatchedPayrollConceptRequest": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Código",
+                        "maxLength": 30
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayrollConceptKindEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "taxable_css": {
+                        "type": "boolean",
+                        "title": "Cotiza al Seguro Social"
+                    },
+                    "taxable_se": {
+                        "type": "boolean",
+                        "title": "Cotiza al Seguro Educativo"
+                    },
+                    "taxable_isr": {
+                        "type": "boolean",
+                        "title": "Gravable para ISR"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Prioridad",
+                        "description": "Orden de aplicación de las deducciones (menor primero)."
+                    },
+                    "is_legal_order": {
+                        "type": "boolean",
+                        "title": "Orden judicial",
+                        "description": "Pensión alimenticia o embargo: se descuenta aunque reduzca otros descuentos."
+                    },
+                    "accounting_account": {
+                        "type": "string",
+                        "title": "Cuenta contable",
+                        "maxLength": 30
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                }
+            },
+            "PatchedPayrollSettingsRequest": {
+                "type": "object",
+                "properties": {
+                    "occupational_risk_rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,6})?$",
+                        "title": "Tasa de riesgos profesionales",
+                        "description": "Aporte patronal según la actividad (la CSS la asigna a cada empresa). Ej.: 0.0567 = 5.67 %."
+                    },
+                    "union_dues_rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,6})?$",
+                        "title": "Cuota sindical (% del salario bruto)",
+                        "description": "Se descuenta a los empleados afiliados al sindicato."
+                    },
+                    "deduct_unworked_time": {
+                        "type": "boolean",
+                        "title": "Descontar tiempo no laborado a asalariados",
+                        "description": "Ausencias, tardanzas y salidas anticipadas de jornadas aprobadas."
+                    }
+                }
+            },
             "PatchedPositionRequest": {
                 "type": "object",
                 "description": "Valida código único por empresa con un mensaje claro (la BD también lo exige).",
@@ -11099,6 +11928,59 @@
                     "description": {
                         "type": "string",
                         "title": "Descripción"
+                    }
+                }
+            },
+            "PatchedRecurringDeductionRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "concept": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Concepto"
+                    },
+                    "amount_per_period": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "title": "Cuota por planilla"
+                    },
+                    "total_amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "nullable": true,
+                        "title": "Monto total"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Hasta"
+                    },
+                    "creditor": {
+                        "type": "string",
+                        "title": "Acreedor / beneficiario",
+                        "maxLength": 150
+                    },
+                    "reference": {
+                        "type": "string",
+                        "title": "Referencia (oficio, contrato…)",
+                        "maxLength": 100
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
                     }
                 }
             },
@@ -11277,6 +12159,54 @@
                 "type": "string",
                 "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
             },
+            "PayLine": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "quantity": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$",
+                        "nullable": true
+                    },
+                    "rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,6})?$",
+                        "nullable": true
+                    },
+                    "cost_center": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "detail": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "code",
+                    "cost_center",
+                    "detail",
+                    "kind",
+                    "name",
+                    "quantity",
+                    "rate"
+                ]
+            },
             "PaymentMethodEnum": {
                 "enum": [
                     "ach",
@@ -11285,6 +12215,189 @@
                 ],
                 "type": "string",
                 "description": "* `ach` - Transferencia ACH\n* `check` - Cheque\n* `cash` - Efectivo"
+            },
+            "PayrollConcept": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "title": "Código",
+                        "maxLength": 30
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayrollConceptKindEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "kind_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "taxable_css": {
+                        "type": "boolean",
+                        "title": "Cotiza al Seguro Social"
+                    },
+                    "taxable_se": {
+                        "type": "boolean",
+                        "title": "Cotiza al Seguro Educativo"
+                    },
+                    "taxable_isr": {
+                        "type": "boolean",
+                        "title": "Gravable para ISR"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Prioridad",
+                        "description": "Orden de aplicación de las deducciones (menor primero)."
+                    },
+                    "is_legal_order": {
+                        "type": "boolean",
+                        "title": "Orden judicial",
+                        "description": "Pensión alimenticia o embargo: se descuenta aunque reduzca otros descuentos."
+                    },
+                    "is_system": {
+                        "type": "boolean",
+                        "readOnly": true,
+                        "title": "Del sistema"
+                    },
+                    "accounting_account": {
+                        "type": "string",
+                        "title": "Cuenta contable",
+                        "maxLength": 30
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                },
+                "required": [
+                    "code",
+                    "id",
+                    "is_system",
+                    "kind",
+                    "kind_display",
+                    "name"
+                ]
+            },
+            "PayrollConceptKindEnum": {
+                "enum": [
+                    "earning",
+                    "deduction",
+                    "employer",
+                    "provision"
+                ],
+                "type": "string",
+                "description": "* `earning` - Ingreso\n* `deduction` - Deducción\n* `employer` - Aporte patronal\n* `provision` - Provisión"
+            },
+            "PayrollConceptRequest": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Código",
+                        "maxLength": 30
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayrollConceptKindEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "taxable_css": {
+                        "type": "boolean",
+                        "title": "Cotiza al Seguro Social"
+                    },
+                    "taxable_se": {
+                        "type": "boolean",
+                        "title": "Cotiza al Seguro Educativo"
+                    },
+                    "taxable_isr": {
+                        "type": "boolean",
+                        "title": "Gravable para ISR"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Prioridad",
+                        "description": "Orden de aplicación de las deducciones (menor primero)."
+                    },
+                    "is_legal_order": {
+                        "type": "boolean",
+                        "title": "Orden judicial",
+                        "description": "Pensión alimenticia o embargo: se descuenta aunque reduzca otros descuentos."
+                    },
+                    "accounting_account": {
+                        "type": "string",
+                        "title": "Cuenta contable",
+                        "maxLength": 30
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                },
+                "required": [
+                    "code",
+                    "kind",
+                    "name"
+                ]
+            },
+            "PayrollSettings": {
+                "type": "object",
+                "properties": {
+                    "country": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "País de la legislación"
+                    },
+                    "occupational_risk_rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,6})?$",
+                        "title": "Tasa de riesgos profesionales",
+                        "description": "Aporte patronal según la actividad (la CSS la asigna a cada empresa). Ej.: 0.0567 = 5.67 %."
+                    },
+                    "union_dues_rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,6})?$",
+                        "title": "Cuota sindical (% del salario bruto)",
+                        "description": "Se descuenta a los empleados afiliados al sindicato."
+                    },
+                    "deduct_unworked_time": {
+                        "type": "boolean",
+                        "title": "Descontar tiempo no laborado a asalariados",
+                        "description": "Ausencias, tardanzas y salidas anticipadas de jornadas aprobadas."
+                    }
+                },
+                "required": [
+                    "country"
+                ]
             },
             "Permission": {
                 "type": "object",
@@ -11407,6 +12520,92 @@
                 "required": [
                     "code",
                     "name"
+                ]
+            },
+            "PreviewRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "period_start": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "period_end": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "pay_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "employee",
+                    "period_end",
+                    "period_start"
+                ]
+            },
+            "PreviewResult": {
+                "type": "object",
+                "properties": {
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PayLine"
+                        }
+                    },
+                    "gross": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "deductions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "net": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "employer_cost": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "explanation": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "parameters": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "deductions",
+                    "employer_cost",
+                    "explanation",
+                    "gross",
+                    "lines",
+                    "net",
+                    "parameters",
+                    "warnings"
                 ]
             },
             "Project": {
@@ -11941,6 +13140,159 @@
                 },
                 "required": [
                     "recovery_codes"
+                ]
+            },
+            "RecurringDeduction": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "concept": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Concepto"
+                    },
+                    "concept_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "concept_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "amount_per_period": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "title": "Cuota por planilla"
+                    },
+                    "total_amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "nullable": true,
+                        "title": "Monto total"
+                    },
+                    "paid_amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Pagado"
+                    },
+                    "balance": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "nullable": true
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Hasta"
+                    },
+                    "creditor": {
+                        "type": "string",
+                        "title": "Acreedor / beneficiario",
+                        "maxLength": 150
+                    },
+                    "reference": {
+                        "type": "string",
+                        "title": "Referencia (oficio, contrato…)",
+                        "maxLength": 100
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                },
+                "required": [
+                    "balance",
+                    "concept",
+                    "concept_code",
+                    "concept_name",
+                    "employee",
+                    "employee_name",
+                    "id",
+                    "paid_amount",
+                    "start_date"
+                ]
+            },
+            "RecurringDeductionRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "concept": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Concepto"
+                    },
+                    "amount_per_period": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "title": "Cuota por planilla"
+                    },
+                    "total_amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "nullable": true,
+                        "title": "Monto total"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Hasta"
+                    },
+                    "creditor": {
+                        "type": "string",
+                        "title": "Acreedor / beneficiario",
+                        "maxLength": 150
+                    },
+                    "reference": {
+                        "type": "string",
+                        "title": "Referencia (oficio, contrato…)",
+                        "maxLength": 100
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                },
+                "required": [
+                    "concept",
+                    "employee",
+                    "start_date"
                 ]
             },
             "Ref": {
