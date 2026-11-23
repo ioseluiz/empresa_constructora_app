@@ -32,7 +32,7 @@ export function Dialog({
             size === 'lg' ? 'max-w-2xl' : 'max-w-md',
           )}
         >
-          <div className="flex items-start justify-between gap-4 border-b p-5">
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b p-5">
             <div className="space-y-1">
               <DialogPrimitive.Title className="font-semibold">{title}</DialogPrimitive.Title>
               {description ? (
@@ -52,8 +52,9 @@ export function Dialog({
               <X className="size-4" />
             </DialogPrimitive.Close>
           </div>
-          {children && <div className="overflow-y-auto p-5">{children}</div>}
-          {footer && <div className="flex justify-end gap-2 border-t p-4">{footer}</div>}
+          {/* Único contenedor con scroll: encabezado y pie quedan fijos. */}
+          {children && <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>}
+          {footer && <div className="flex shrink-0 justify-end gap-2 border-t p-4">{footer}</div>}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

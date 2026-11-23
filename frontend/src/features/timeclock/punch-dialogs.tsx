@@ -207,7 +207,7 @@ export function ManualPunchDialog({ onClose }: { onClose: () => void }) {
             />
           </div>
           {errors.employees && <p className="text-danger text-xs">{errors.employees}</p>}
-          <div className="max-h-64 overflow-y-auto rounded-md border">
+          <div className="rounded-md border">
             {employees.isPending ? (
               <LoadingBlock />
             ) : rows.length === 0 ? (

@@ -179,11 +179,7 @@ function ContractDialog({
         </>
       }
     >
-      <form
-        id="contract-form"
-        onSubmit={submit}
-        className="max-h-[65vh] space-y-5 overflow-y-auto pr-1"
-      >
+      <form id="contract-form" onSubmit={submit} className="space-y-5">
         {error && <Alert>{error}</Alert>}
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField id={id('contract_type')} label="Tipo de contrato" error={errors.contract_type}>

@@ -35,7 +35,7 @@ export function AssignmentEditor({
   return (
     <fieldset className="space-y-1">
       <legend className="mb-2 text-sm font-medium">Roles y alcance</legend>
-      <div className="max-h-[26rem] space-y-1 overflow-y-auto rounded-md border p-1">
+      <div className="space-y-1 rounded-md border p-1">
         {roles.map((role) => {
           const checked = role.id in value
           const scopedProjects = value[role.id]?.projects ?? []

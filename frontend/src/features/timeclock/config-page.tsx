@@ -326,11 +326,7 @@ function TemplateDialog({ template, onClose }: { template?: ImportTemplate; onCl
         />
       }
     >
-      <form
-        id="template-form"
-        onSubmit={submit}
-        className="max-h-[65vh] space-y-4 overflow-y-auto pr-1"
-      >
+      <form id="template-form" onSubmit={submit} className="space-y-4">
         {error && <Alert>{error}</Alert>}
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField id="tpl-name" label="Nombre" error={errors.name as string}>

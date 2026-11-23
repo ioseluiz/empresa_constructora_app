@@ -15,7 +15,7 @@ export function RolePicker({
   return (
     <fieldset className="space-y-1">
       <legend className="mb-2 text-sm font-medium">Roles</legend>
-      <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border p-1">
+      <div className="space-y-1 rounded-md border p-1">
         {roles.map((role) => (
           <label
             key={role.id}
