@@ -94,6 +94,19 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
 - Los permisos nuevos que se agreguen al catálogo requieren una migración de datos que los sume a
   los roles plantilla existentes (ver `iam/0004`).
 
+## Empleados (`apps/hr`)
+
+- Expediente: datos personales (cédula validada con el formato panameño), seguro social, forma de
+  pago y cuenta bancaria. Los datos bancarios y salarios solo los ve quien tiene `hr.salary.view`.
+- Contratos (indefinido, definido, obra determinada) con historial salarial por fecha de vigencia
+  (`SalaryRecord`): un aumento es un registro nuevo, nunca se sobrescribe. La planilla usará
+  `contract.salary_on(fecha)`. Con convención, la tarifa puede seguir la tabla vigente.
+- PostgreSQL impide contratos solapados del mismo empleado y asignaciones solapadas al mismo
+  proyecto (restricciones de exclusión con `btree_gist`).
+- Un rol limitado a ciertos proyectos solo ve a los empleados asignados a esos proyectos.
+- Los documentos se guardan con nombre aleatorio y solo se descargan por el endpoint autenticado
+  (`/hr/documents/{id}/download/`), validando tipo y contenido (PDF/JPG/PNG, máx. 10 MB).
+
 ## Cliente de la API (orval)
 
 El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:

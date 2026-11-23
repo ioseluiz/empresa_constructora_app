@@ -95,3 +95,29 @@ POSITIONS = [
     ("RRH", "Analista de recursos humanos", "office", None),
     ("GER", "Gerente", "office", None),
 ]
+
+# Bancos con servicio ACH en Panamá (código interno, nombre). El código de ruta ACH de cada
+# banco se configurará con el archivo de pago (Sprint 10).
+BANKS = [
+    ("banco_general", "Banco General"),
+    ("banistmo", "Banistmo"),
+    ("bac", "BAC Credomatic"),
+    ("banconal", "Banco Nacional de Panamá"),
+    ("caja_ahorros", "Caja de Ahorros"),
+    ("global_bank", "Global Bank"),
+    ("multibank", "Multibank"),
+    ("banesco", "Banesco"),
+    ("davivienda", "Davivienda"),
+    ("credicorp", "Credicorp Bank"),
+    ("scotiabank", "Scotiabank"),
+    ("banco_aliado", "Banco Aliado"),
+    ("st_georges", "St. Georges Bank"),
+    ("towerbank", "Towerbank"),
+    ("banisi", "Banisi"),
+    ("other", "Otro"),
+]
+
+# Cédula panameña: provincia (1-13) o letra (E extranjero, N naturalizado, PE panameño nacido
+# en el extranjero), con sufijo opcional AV (antes de la vigencia) o PI (comarca indígena),
+# seguida de tomo y asiento. Ej.: 8-123-4567, 4PI-12-345, E-8-123456.
+CEDULA_REGEX = r"^(?:(?:[1-9]|1[0-3])(?:AV|PI)?|PE|E|N)-\d{1,4}-\d{1,6}$"

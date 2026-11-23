@@ -709,6 +709,1333 @@
                 }
             }
         },
+        "/api/v1/hr/assignments/": {
+            "get": {
+                "operationId": "hr_assignments_list",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ProjectAssignment"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "hr_assignments_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectAssignmentRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectAssignmentRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectAssignmentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectAssignment"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/assignments/{id}/": {
+            "get": {
+                "operationId": "hr_assignments_retrieve",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este asignación a proyecto.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectAssignment"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "hr_assignments_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este asignación a proyecto.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectAssignmentRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectAssignmentRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectAssignmentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectAssignment"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "hr_assignments_partial_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este asignación a proyecto.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedProjectAssignmentRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedProjectAssignmentRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedProjectAssignmentRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectAssignment"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "hr_assignments_destroy",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este asignación a proyecto.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/contracts/": {
+            "get": {
+                "operationId": "hr_contracts_list",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "contract_type",
+                        "schema": {
+                            "type": "string",
+                            "title": "Tipo de contrato",
+                            "enum": [
+                                "fixed_term",
+                                "indefinite",
+                                "project"
+                            ]
+                        },
+                        "description": "* `indefinite` - Tiempo indefinido\n* `fixed_term` - Tiempo definido\n* `project` - Obra determinada"
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "title": "Estado",
+                            "enum": [
+                                "active",
+                                "cancelled",
+                                "ended"
+                            ]
+                        },
+                        "description": "* `active` - Vigente\n* `ended` - Terminado\n* `cancelled` - Anulado"
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EmploymentContract"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "hr_contracts_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmploymentContractRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmploymentContractRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmploymentContractRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmploymentContract"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/contracts/{id}/": {
+            "get": {
+                "operationId": "hr_contracts_retrieve",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este contrato.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmploymentContract"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "hr_contracts_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este contrato.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmploymentContractRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmploymentContractRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmploymentContractRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmploymentContract"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "hr_contracts_partial_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este contrato.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmploymentContractRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmploymentContractRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmploymentContractRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmploymentContract"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/contracts/{id}/end/": {
+            "post": {
+                "operationId": "hr_contracts_end_create",
+                "description": "Termina el contrato (renuncia, despido, fin de obra…). El cálculo de prestaciones\nllega con las liquidaciones.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este contrato.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EndContractRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EndContractRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EndContractRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmploymentContract"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/documents/": {
+            "get": {
+                "operationId": "hr_documents_list",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "kind",
+                        "schema": {
+                            "type": "string",
+                            "title": "Tipo",
+                            "enum": [
+                                "certificate",
+                                "contract",
+                                "css_card",
+                                "id_copy",
+                                "medical",
+                                "other",
+                                "work_permit"
+                            ]
+                        },
+                        "description": "* `id_copy` - Copia de cédula o pasaporte\n* `css_card` - Carné del seguro social\n* `contract` - Contrato firmado\n* `work_permit` - Permiso de trabajo\n* `certificate` - Certificado o diploma\n* `medical` - Certificado médico\n* `other` - Otro"
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EmployeeDocument"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "hr_documents_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeDocumentRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeDocumentRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeDocumentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeDocument"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/documents/{id}/": {
+            "get": {
+                "operationId": "hr_documents_retrieve",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este documento del empleado.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeDocument"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "hr_documents_partial_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este documento del empleado.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmployeeDocumentRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmployeeDocumentRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmployeeDocumentRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeDocument"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "hr_documents_destroy",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este documento del empleado.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/documents/{id}/download/": {
+            "get": {
+                "operationId": "hr_documents_download_retrieve",
+                "description": "Descarga autenticada (los documentos nunca se sirven como archivos públicos).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este documento del empleado.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/employees/": {
+            "get": {
+                "operationId": "hr_employees_list",
+                "description": "Los empleados no se eliminan: se retiran al terminar su contrato.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "is_union_member",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "payment_method",
+                        "schema": {
+                            "type": "string",
+                            "title": "Forma de pago",
+                            "enum": [
+                                "ach",
+                                "cash",
+                                "check"
+                            ]
+                        },
+                        "description": "* `ach` - Transferencia ACH\n* `check` - Cheque\n* `cash` - Efectivo"
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {},
+                        "description": "Proyecto actual"
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "title": "Estado",
+                            "enum": [
+                                "active",
+                                "terminated"
+                            ]
+                        },
+                        "description": "* `active` - Activo\n* `terminated` - Retirado"
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedEmployeeList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "hr_employees_create",
+                "description": "Los empleados no se eliminan: se retiran al terminar su contrato.",
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Employee"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/employees/{id}/": {
+            "get": {
+                "operationId": "hr_employees_retrieve",
+                "description": "Los empleados no se eliminan: se retiran al terminar su contrato.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este empleado.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Employee"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "hr_employees_update",
+                "description": "Los empleados no se eliminan: se retiran al terminar su contrato.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este empleado.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Employee"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "hr_employees_partial_update",
+                "description": "Los empleados no se eliminan: se retiran al terminar su contrato.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este empleado.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmployeeRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmployeeRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedEmployeeRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Employee"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/employees/next-code/": {
+            "get": {
+                "operationId": "hr_employees_next_code_retrieve",
+                "description": "Los empleados no se eliminan: se retiran al terminar su contrato.",
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/hr/salaries/": {
+            "get": {
+                "operationId": "hr_salaries_list",
+                "description": "Historial salarial. Un aumento se registra con su fecha de vigencia; los registros no se\neditan (corrige con un registro nuevo para que la trazabilidad sea completa).",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "contract",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "personal"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SalaryRecord"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "hr_salaries_create",
+                "description": "Historial salarial. Un aumento se registra con su fecha de vigencia; los registros no se\neditan (corrige con un registro nuevo para que la trazabilidad sea completa).",
+                "tags": [
+                    "personal"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SalaryRecordRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SalaryRecordRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SalaryRecordRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SalaryRecord"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/iam/invitations/": {
             "get": {
                 "operationId": "iam_invitations_list",
@@ -3280,6 +4607,14 @@
                     "access"
                 ]
             },
+            "AccountTypeEnum": {
+                "enum": [
+                    "savings",
+                    "checking"
+                ],
+                "type": "string",
+                "description": "* `savings` - Ahorros\n* `checking` - Corriente"
+            },
             "ActionEnum": {
                 "enum": [
                     "create",
@@ -3430,6 +4765,28 @@
                     "id",
                     "object_type"
                 ]
+            },
+            "BankEnum": {
+                "enum": [
+                    "banco_general",
+                    "banistmo",
+                    "bac",
+                    "banconal",
+                    "caja_ahorros",
+                    "global_bank",
+                    "multibank",
+                    "banesco",
+                    "davivienda",
+                    "credicorp",
+                    "scotiabank",
+                    "banco_aliado",
+                    "st_georges",
+                    "towerbank",
+                    "banisi",
+                    "other"
+                ],
+                "type": "string",
+                "description": "* `banco_general` - Banco General\n* `banistmo` - Banistmo\n* `bac` - BAC Credomatic\n* `banconal` - Banco Nacional de Panamá\n* `caja_ahorros` - Caja de Ahorros\n* `global_bank` - Global Bank\n* `multibank` - Multibank\n* `banesco` - Banesco\n* `davivienda` - Davivienda\n* `credicorp` - Credicorp Bank\n* `scotiabank` - Scotiabank\n* `banco_aliado` - Banco Aliado\n* `st_georges` - St. Georges Bank\n* `towerbank` - Towerbank\n* `banisi` - Banisi\n* `other` - Otro"
             },
             "BlankEnum": {
                 "enum": [
@@ -3582,6 +4939,15 @@
                     "valid_from"
                 ]
             },
+            "ContractTypeEnum": {
+                "enum": [
+                    "indefinite",
+                    "fixed_term",
+                    "project"
+                ],
+                "type": "string",
+                "description": "* `indefinite` - Tiempo indefinido\n* `fixed_term` - Tiempo definido\n* `project` - Obra determinada"
+            },
             "CostCenter": {
                 "type": "object",
                 "description": "Valida código único por empresa con un mensaje claro (la BD también lo exige).",
@@ -3684,6 +5050,910 @@
                 "required": [
                     "code",
                     "name"
+                ]
+            },
+            "Employee": {
+                "type": "object",
+                "description": "Los datos bancarios solo se muestran y editan con `hr.salary.view`.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "title": "Primer nombre",
+                        "maxLength": 60
+                    },
+                    "middle_name": {
+                        "type": "string",
+                        "title": "Segundo nombre",
+                        "maxLength": 60
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "Primer apellido",
+                        "maxLength": 60
+                    },
+                    "second_last_name": {
+                        "type": "string",
+                        "title": "Segundo apellido",
+                        "maxLength": 60
+                    },
+                    "full_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "id_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/IdTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de identificación"
+                    },
+                    "id_number": {
+                        "type": "string",
+                        "title": "Número de identificación",
+                        "maxLength": 30
+                    },
+                    "css_number": {
+                        "type": "string",
+                        "title": "Número de seguro social",
+                        "maxLength": 20
+                    },
+                    "birth_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Fecha de nacimiento"
+                    },
+                    "sex": {
+                        "title": "Sexo",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/SexEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "marital_status": {
+                        "title": "Estado civil",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/MaritalStatusEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "nationality": {
+                        "type": "string",
+                        "title": "Nacionalidad",
+                        "maxLength": 60
+                    },
+                    "email": {
+                        "title": "Correo",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "email",
+                                "maxLength": 254
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "type": "string",
+                        "title": "Teléfono",
+                        "maxLength": 30
+                    },
+                    "address": {
+                        "type": "string",
+                        "title": "Dirección",
+                        "maxLength": 255
+                    },
+                    "province": {
+                        "title": "Provincia",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/ProvinceEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "emergency_contact_name": {
+                        "type": "string",
+                        "title": "Contacto de emergencia",
+                        "maxLength": 120
+                    },
+                    "emergency_contact_phone": {
+                        "type": "string",
+                        "title": "Teléfono de emergencia",
+                        "maxLength": 30
+                    },
+                    "payment_method": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PaymentMethodEnum"
+                            }
+                        ],
+                        "title": "Forma de pago"
+                    },
+                    "payment_method_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "bank": {
+                        "title": "Banco",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/BankEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "bank_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "account_type": {
+                        "title": "Tipo de cuenta",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AccountTypeEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "account_number": {
+                        "title": "Número de cuenta",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^\\d{4,30}$",
+                                "maxLength": 30
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "hire_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fecha de ingreso"
+                    },
+                    "termination_date": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Fecha de salida"
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmployeeStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Estado"
+                    },
+                    "status_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "is_union_member": {
+                        "type": "boolean",
+                        "title": "Afiliado al sindicato",
+                        "description": "Se le descontará la cuota sindical en planilla."
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones"
+                    },
+                    "current_projects": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Ref"
+                        },
+                        "readOnly": true
+                    },
+                    "current_position": {
+                        "type": "string",
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "bank_display",
+                    "created_at",
+                    "current_position",
+                    "current_projects",
+                    "first_name",
+                    "full_name",
+                    "hire_date",
+                    "id",
+                    "id_number",
+                    "last_name",
+                    "payment_method_display",
+                    "status",
+                    "status_display",
+                    "termination_date"
+                ]
+            },
+            "EmployeeDocument": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmployeeDocumentKindEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "kind_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Descripción",
+                        "maxLength": 150
+                    },
+                    "original_name": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Nombre original"
+                    },
+                    "content_type": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Tipo de archivo"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Tamaño (bytes)"
+                    },
+                    "expires_on": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Vence"
+                    },
+                    "uploaded_by": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "content_type",
+                    "created_at",
+                    "employee",
+                    "id",
+                    "kind",
+                    "kind_display",
+                    "original_name",
+                    "size",
+                    "uploaded_by"
+                ]
+            },
+            "EmployeeDocumentKindEnum": {
+                "enum": [
+                    "id_copy",
+                    "css_card",
+                    "contract",
+                    "work_permit",
+                    "certificate",
+                    "medical",
+                    "other"
+                ],
+                "type": "string",
+                "description": "* `id_copy` - Copia de cédula o pasaporte\n* `css_card` - Carné del seguro social\n* `contract` - Contrato firmado\n* `work_permit` - Permiso de trabajo\n* `certificate` - Certificado o diploma\n* `medical` - Certificado médico\n* `other` - Otro"
+            },
+            "EmployeeDocumentRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmployeeDocumentKindEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Descripción",
+                        "maxLength": 150
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "writeOnly": true
+                    },
+                    "expires_on": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Vence"
+                    }
+                },
+                "required": [
+                    "employee",
+                    "file",
+                    "kind"
+                ]
+            },
+            "EmployeeRequest": {
+                "type": "object",
+                "description": "Los datos bancarios solo se muestran y editan con `hr.salary.view`.",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Primer nombre",
+                        "maxLength": 60
+                    },
+                    "middle_name": {
+                        "type": "string",
+                        "title": "Segundo nombre",
+                        "maxLength": 60
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Primer apellido",
+                        "maxLength": 60
+                    },
+                    "second_last_name": {
+                        "type": "string",
+                        "title": "Segundo apellido",
+                        "maxLength": 60
+                    },
+                    "id_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/IdTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de identificación"
+                    },
+                    "id_number": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Número de identificación",
+                        "maxLength": 30
+                    },
+                    "css_number": {
+                        "type": "string",
+                        "title": "Número de seguro social",
+                        "maxLength": 20
+                    },
+                    "birth_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Fecha de nacimiento"
+                    },
+                    "sex": {
+                        "title": "Sexo",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/SexEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "marital_status": {
+                        "title": "Estado civil",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/MaritalStatusEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "nationality": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nacionalidad",
+                        "maxLength": 60
+                    },
+                    "email": {
+                        "title": "Correo",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "email",
+                                "maxLength": 254
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "type": "string",
+                        "title": "Teléfono",
+                        "maxLength": 30
+                    },
+                    "address": {
+                        "type": "string",
+                        "title": "Dirección",
+                        "maxLength": 255
+                    },
+                    "province": {
+                        "title": "Provincia",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/ProvinceEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "emergency_contact_name": {
+                        "type": "string",
+                        "title": "Contacto de emergencia",
+                        "maxLength": 120
+                    },
+                    "emergency_contact_phone": {
+                        "type": "string",
+                        "title": "Teléfono de emergencia",
+                        "maxLength": 30
+                    },
+                    "payment_method": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PaymentMethodEnum"
+                            }
+                        ],
+                        "title": "Forma de pago"
+                    },
+                    "bank": {
+                        "title": "Banco",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/BankEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "account_type": {
+                        "title": "Tipo de cuenta",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AccountTypeEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "account_number": {
+                        "title": "Número de cuenta",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^\\d{4,30}$",
+                                "maxLength": 30
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "hire_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fecha de ingreso"
+                    },
+                    "is_union_member": {
+                        "type": "boolean",
+                        "title": "Afiliado al sindicato",
+                        "description": "Se le descontará la cuota sindical en planilla."
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones"
+                    }
+                },
+                "required": [
+                    "first_name",
+                    "hire_date",
+                    "id_number",
+                    "last_name"
+                ]
+            },
+            "EmployeeStatusEnum": {
+                "enum": [
+                    "active",
+                    "terminated"
+                ],
+                "type": "string",
+                "description": "* `active` - Activo\n* `terminated` - Retirado"
+            },
+            "EmploymentContract": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "contract_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ContractTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de contrato"
+                    },
+                    "contract_type_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Inicio"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Fin"
+                    },
+                    "position": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Puesto"
+                    },
+                    "position_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Obra",
+                        "description": "Obligatorio en contratos por obra determinada."
+                    },
+                    "project_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "cost_center": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Centro de costo",
+                        "description": "Centro de costo al que se carga la planilla por defecto."
+                    },
+                    "cost_center_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "pay_frequency": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayFrequencyEnum"
+                            }
+                        ],
+                        "title": "Frecuencia de pago"
+                    },
+                    "pay_frequency_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "pay_basis": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayBasisEnum"
+                            }
+                        ],
+                        "title": "Base de pago"
+                    },
+                    "pay_basis_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "shift": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ShiftEnum"
+                            }
+                        ],
+                        "title": "Jornada"
+                    },
+                    "shift_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "weekly_hours": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,1})?$",
+                        "title": "Horas semanales"
+                    },
+                    "applies_cba": {
+                        "type": "boolean",
+                        "title": "Aplica convención SUNTRACS–CAPAC"
+                    },
+                    "cba_category": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Categoría de convención"
+                    },
+                    "cba_category_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmploymentContractStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Estado"
+                    },
+                    "status_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "end_reason": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Motivo de terminación"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones"
+                    },
+                    "current_salary": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SalaryRecord"
+                            }
+                        ],
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "cba_category_name",
+                    "contract_type",
+                    "contract_type_display",
+                    "cost_center_code",
+                    "created_at",
+                    "current_salary",
+                    "employee",
+                    "end_reason",
+                    "id",
+                    "pay_basis",
+                    "pay_basis_display",
+                    "pay_frequency",
+                    "pay_frequency_display",
+                    "position",
+                    "position_name",
+                    "project_code",
+                    "shift_display",
+                    "start_date",
+                    "status",
+                    "status_display"
+                ]
+            },
+            "EmploymentContractRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "contract_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ContractTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de contrato"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Inicio"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Fin"
+                    },
+                    "position": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Puesto"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Obra",
+                        "description": "Obligatorio en contratos por obra determinada."
+                    },
+                    "cost_center": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Centro de costo",
+                        "description": "Centro de costo al que se carga la planilla por defecto."
+                    },
+                    "pay_frequency": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayFrequencyEnum"
+                            }
+                        ],
+                        "title": "Frecuencia de pago"
+                    },
+                    "pay_basis": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayBasisEnum"
+                            }
+                        ],
+                        "title": "Base de pago"
+                    },
+                    "shift": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ShiftEnum"
+                            }
+                        ],
+                        "title": "Jornada"
+                    },
+                    "weekly_hours": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,1})?$",
+                        "title": "Horas semanales"
+                    },
+                    "applies_cba": {
+                        "type": "boolean",
+                        "title": "Aplica convención SUNTRACS–CAPAC"
+                    },
+                    "cba_category": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Categoría de convención"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones"
+                    },
+                    "initial_amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,4})?$",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "initial_uses_cba_rate": {
+                        "type": "boolean",
+                        "writeOnly": true
+                    }
+                },
+                "required": [
+                    "contract_type",
+                    "employee",
+                    "pay_basis",
+                    "pay_frequency",
+                    "position",
+                    "start_date"
+                ]
+            },
+            "EmploymentContractStatusEnum": {
+                "enum": [
+                    "active",
+                    "ended",
+                    "cancelled"
+                ],
+                "type": "string",
+                "description": "* `active` - Vigente\n* `ended` - Terminado\n* `cancelled` - Anulado"
+            },
+            "EndContractRequest": {
+                "type": "object",
+                "properties": {
+                    "end_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "end_date",
+                    "reason"
                 ]
             },
             "GenerateHolidaysRequest": {
@@ -3799,6 +6069,14 @@
                     "date",
                     "name"
                 ]
+            },
+            "IdTypeEnum": {
+                "enum": [
+                    "cedula",
+                    "passport"
+                ],
+                "type": "string",
+                "description": "* `cedula` - Cédula\n* `passport` - Pasaporte"
             },
             "Invitation": {
                 "type": "object",
@@ -4075,6 +6353,17 @@
                     "recovery_codes_remaining"
                 ]
             },
+            "MaritalStatusEnum": {
+                "enum": [
+                    "single",
+                    "married",
+                    "union",
+                    "divorced",
+                    "widowed"
+                ],
+                "type": "string",
+                "description": "* `single` - Soltero(a)\n* `married` - Casado(a)\n* `union` - Unido(a)\n* `divorced` - Divorciado(a)\n* `widowed` - Viudo(a)"
+            },
             "Member": {
                 "type": "object",
                 "properties": {
@@ -4276,6 +6565,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/AuditLog"
+                        }
+                    }
+                }
+            },
+            "PaginatedEmployeeList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Employee"
                         }
                     }
                 }
@@ -4487,6 +6807,330 @@
                     }
                 }
             },
+            "PatchedEmployeeDocumentRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmployeeDocumentKindEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Descripción",
+                        "maxLength": 150
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "writeOnly": true
+                    },
+                    "expires_on": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Vence"
+                    }
+                }
+            },
+            "PatchedEmployeeRequest": {
+                "type": "object",
+                "description": "Los datos bancarios solo se muestran y editan con `hr.salary.view`.",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Primer nombre",
+                        "maxLength": 60
+                    },
+                    "middle_name": {
+                        "type": "string",
+                        "title": "Segundo nombre",
+                        "maxLength": 60
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Primer apellido",
+                        "maxLength": 60
+                    },
+                    "second_last_name": {
+                        "type": "string",
+                        "title": "Segundo apellido",
+                        "maxLength": 60
+                    },
+                    "id_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/IdTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de identificación"
+                    },
+                    "id_number": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Número de identificación",
+                        "maxLength": 30
+                    },
+                    "css_number": {
+                        "type": "string",
+                        "title": "Número de seguro social",
+                        "maxLength": 20
+                    },
+                    "birth_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Fecha de nacimiento"
+                    },
+                    "sex": {
+                        "title": "Sexo",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/SexEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "marital_status": {
+                        "title": "Estado civil",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/MaritalStatusEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "nationality": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nacionalidad",
+                        "maxLength": 60
+                    },
+                    "email": {
+                        "title": "Correo",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "email",
+                                "maxLength": 254
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "type": "string",
+                        "title": "Teléfono",
+                        "maxLength": 30
+                    },
+                    "address": {
+                        "type": "string",
+                        "title": "Dirección",
+                        "maxLength": 255
+                    },
+                    "province": {
+                        "title": "Provincia",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/ProvinceEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "emergency_contact_name": {
+                        "type": "string",
+                        "title": "Contacto de emergencia",
+                        "maxLength": 120
+                    },
+                    "emergency_contact_phone": {
+                        "type": "string",
+                        "title": "Teléfono de emergencia",
+                        "maxLength": 30
+                    },
+                    "payment_method": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PaymentMethodEnum"
+                            }
+                        ],
+                        "title": "Forma de pago"
+                    },
+                    "bank": {
+                        "title": "Banco",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/BankEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "account_type": {
+                        "title": "Tipo de cuenta",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AccountTypeEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "account_number": {
+                        "title": "Número de cuenta",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^\\d{4,30}$",
+                                "maxLength": 30
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "hire_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fecha de ingreso"
+                    },
+                    "is_union_member": {
+                        "type": "boolean",
+                        "title": "Afiliado al sindicato",
+                        "description": "Se le descontará la cuota sindical en planilla."
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones"
+                    }
+                }
+            },
+            "PatchedEmploymentContractRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "contract_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ContractTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de contrato"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Inicio"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Fin"
+                    },
+                    "position": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Puesto"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Obra",
+                        "description": "Obligatorio en contratos por obra determinada."
+                    },
+                    "cost_center": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Centro de costo",
+                        "description": "Centro de costo al que se carga la planilla por defecto."
+                    },
+                    "pay_frequency": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayFrequencyEnum"
+                            }
+                        ],
+                        "title": "Frecuencia de pago"
+                    },
+                    "pay_basis": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayBasisEnum"
+                            }
+                        ],
+                        "title": "Base de pago"
+                    },
+                    "shift": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ShiftEnum"
+                            }
+                        ],
+                        "title": "Jornada"
+                    },
+                    "weekly_hours": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,1})?$",
+                        "title": "Horas semanales"
+                    },
+                    "applies_cba": {
+                        "type": "boolean",
+                        "title": "Aplica convención SUNTRACS–CAPAC"
+                    },
+                    "cba_category": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Categoría de convención"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones"
+                    },
+                    "initial_amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,4})?$",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "initial_uses_cba_rate": {
+                        "type": "boolean",
+                        "writeOnly": true
+                    }
+                }
+            },
             "PatchedHolidayRequest": {
                 "type": "object",
                 "properties": {
@@ -4571,6 +7215,43 @@
                     "is_active": {
                         "type": "boolean",
                         "title": "Activo"
+                    }
+                }
+            },
+            "PatchedProjectAssignmentRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Proyecto"
+                    },
+                    "position": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Puesto en la obra"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Hasta"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones",
+                        "maxLength": 255
                     }
                 }
             },
@@ -4729,6 +7410,32 @@
                         "maxLength": 150
                     }
                 }
+            },
+            "PayBasisEnum": {
+                "enum": [
+                    "monthly",
+                    "hourly"
+                ],
+                "type": "string",
+                "description": "* `monthly` - Salario mensual\n* `hourly` - Por hora"
+            },
+            "PayFrequencyEnum": {
+                "enum": [
+                    "weekly",
+                    "biweekly",
+                    "monthly"
+                ],
+                "type": "string",
+                "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
+            },
+            "PaymentMethodEnum": {
+                "enum": [
+                    "ach",
+                    "check",
+                    "cash"
+                ],
+                "type": "string",
+                "description": "* `ach` - Transferencia ACH\n* `check` - Cheque\n* `cash` - Efectivo"
             },
             "Permission": {
                 "type": "object",
@@ -4965,6 +7672,120 @@
                     "status_display"
                 ]
             },
+            "ProjectAssignment": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Proyecto"
+                    },
+                    "project_ref": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Ref"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "position": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Puesto en la obra"
+                    },
+                    "position_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Hasta"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "id",
+                    "position_name",
+                    "project",
+                    "project_ref",
+                    "start_date"
+                ]
+            },
+            "ProjectAssignmentRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Proyecto"
+                    },
+                    "position": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Puesto en la obra"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Hasta"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "employee",
+                    "project",
+                    "start_date"
+                ]
+            },
             "ProjectRef": {
                 "type": "object",
                 "properties": {
@@ -5108,6 +7929,48 @@
                     "recovery_codes"
                 ]
             },
+            "Ref": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "code",
+                    "id",
+                    "name"
+                ]
+            },
+            "RefRequest": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "code": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "code",
+                    "id",
+                    "name"
+                ]
+            },
             "Role": {
                 "type": "object",
                 "properties": {
@@ -5212,6 +8075,110 @@
                 "required": [
                     "name"
                 ]
+            },
+            "SalaryRecord": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "contract": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Contrato"
+                    },
+                    "valid_from": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Vigente desde"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,4})?$",
+                        "nullable": true,
+                        "title": "Monto",
+                        "description": "Salario mensual o tarifa por hora, según la base de pago del contrato."
+                    },
+                    "uses_cba_rate": {
+                        "type": "boolean",
+                        "title": "Usa la tarifa de la convención",
+                        "description": "La tarifa por hora sigue la tabla de la convención vigente en cada fecha."
+                    },
+                    "reason": {
+                        "type": "string",
+                        "title": "Motivo",
+                        "maxLength": 255
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "contract",
+                    "created_at",
+                    "id",
+                    "valid_from"
+                ]
+            },
+            "SalaryRecordRequest": {
+                "type": "object",
+                "properties": {
+                    "contract": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Contrato"
+                    },
+                    "valid_from": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Vigente desde"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,4})?$",
+                        "nullable": true,
+                        "title": "Monto",
+                        "description": "Salario mensual o tarifa por hora, según la base de pago del contrato."
+                    },
+                    "uses_cba_rate": {
+                        "type": "boolean",
+                        "title": "Usa la tarifa de la convención",
+                        "description": "La tarifa por hora sigue la tabla de la convención vigente en cada fecha."
+                    },
+                    "reason": {
+                        "type": "string",
+                        "title": "Motivo",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "contract",
+                    "valid_from"
+                ]
+            },
+            "SexEnum": {
+                "enum": [
+                    "M",
+                    "F"
+                ],
+                "type": "string",
+                "description": "* `M` - Masculino\n* `F` - Femenino"
+            },
+            "ShiftEnum": {
+                "enum": [
+                    "day",
+                    "night",
+                    "mixed"
+                ],
+                "type": "string",
+                "description": "* `day` - Diurna\n* `night` - Nocturna\n* `mixed` - Mixta"
             },
             "Tenant": {
                 "type": "object",

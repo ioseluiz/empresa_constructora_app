@@ -17,6 +17,8 @@ import { CostCentersPage } from '@/features/catalogs/cost-centers-page'
 import { HolidaysPage } from '@/features/catalogs/holidays-page'
 import { PositionsPage } from '@/features/catalogs/positions-page'
 import { ProjectsPage } from '@/features/projects/projects-page'
+import { EmployeeDetailPage } from '@/features/employees/employee-detail-page'
+import { EmployeesPage } from '@/features/employees/employees-page'
 
 function guarded(permission: string, page: React.ReactNode) {
   return <RequirePermission permission={permission}>{page}</RequirePermission>
@@ -42,6 +44,11 @@ export const router = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: 'cuenta/seguridad', element: <SecurityPage /> },
           { path: 'proyectos', element: guarded('projects.view', <ProjectsPage />) },
+          { path: 'empleados', element: guarded('hr.employee.view', <EmployeesPage />) },
+          {
+            path: 'empleados/:id',
+            element: guarded('hr.employee.view', <EmployeeDetailPage />),
+          },
           {
             path: 'catalogos/centros-de-costo',
             element: guarded('org.manage', <CostCentersPage />),

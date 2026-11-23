@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { LoadingBlock, PageHeader } from '@/components/ui/page'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { formatDate, formatMoney } from '@/lib/format'
-import { useFormErrors } from './use-mutation-feedback'
+import { useFormErrors } from '@/lib/use-form-errors'
 
 function RatesDialog({ category, onClose }: { category: CBACategory; onClose: () => void }) {
   const queryClient = useQueryClient()

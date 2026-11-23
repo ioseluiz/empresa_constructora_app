@@ -423,7 +423,7 @@ Ramas: `main` (siempre desplegable) + ramas de feature con Pull Request obligato
 | 3 ✅ | Roles y permisos, auditoría inalterable, administración de usuarios e invitaciones, MFA (TOTP), cliente API generado con orval. *Infraestructura pospuesta (ver 3b).* |
 | 3b | Terraform + despliegue continuo a staging — pendiente de elegir proveedor de nube |
 | 4 ✅ | Organización: centros de costo, proyectos, puestos, categorías y tarifas de convención, feriados de Panamá; alcance de roles por proyecto |
-| 5 | Expediente de empleados, contratos, asignación a proyectos |
+| 5 ✅ | Expediente de empleados, contratos con historial salarial, asignación a proyectos, documentos |
 | 6 | **Marcaciones:** modelos, dispositivos, importadores ZKTeco y Excel/CSV, captura manual, lotes |
 | 7 | **Horarios y motor de jornada**, bandeja de excepciones, aprobación → TimeEntry |
 | 8 | Motor de planilla, `payroll_pa`, parámetros legales con vigencia, tarifas de convención, descuentos |

@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input'
 import { LoadingBlock, PageHeader } from '@/components/ui/page'
 import { Select } from '@/components/ui/select'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
-import { useFormErrors } from './use-mutation-feedback'
+import { useFormErrors } from '@/lib/use-form-errors'
 
 /** Ordena en profundidad para mostrar el árbol con sangría. */
 function flattenTree(items: CostCenter[]) {
