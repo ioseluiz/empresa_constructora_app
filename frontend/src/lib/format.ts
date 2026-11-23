@@ -20,3 +20,50 @@ export function formatMoney(value: string | number | null | undefined, decimals 
     maximumFractionDigits: decimals,
   }).format(Number(value))}`
 }
+
+const TZ = 'America/Panama'
+
+/** Fecha de una marca de tiempo en la zona horaria de la empresa (Panamá). */
+export function formatDay(value: string | null | undefined) {
+  if (!value) return '—'
+  return new Intl.DateTimeFormat('es-PA', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: TZ,
+  }).format(new Date(value))
+}
+
+/** Hora (con segundos) en la zona horaria de la empresa. */
+export function formatTime(value: string | null | undefined) {
+  if (!value) return '—'
+  return new Intl.DateTimeFormat('es-PA', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: TZ,
+  }).format(new Date(value))
+}
+
+/** YYYY-MM-DD y HH:MM de una marca de tiempo en la zona de la empresa (para formularios). */
+export function toLocalParts(value: string): { date: string; time: string } {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: TZ,
+    })
+      .formatToParts(new Date(value))
+      .map((p) => [p.type, p.value]),
+  )
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    time: `${parts.hour}:${parts.minute}`,
+  }
+}

@@ -107,6 +107,21 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
 - Los documentos se guardan con nombre aleatorio y solo se descargan por el endpoint autenticado
   (`/hr/documents/{id}/download/`), validando tipo y contenido (PDF/JPG/PNG, máx. 10 MB).
 
+## Marcaciones (`apps/timeclock`)
+
+- Fuentes: archivo attlog de relojes ZKTeco, Excel (.xlsx) o CSV de otros sistemas mediante
+  plantillas de columnas, y registro manual (individual o por cuadrilla, siempre con motivo).
+- Importación en dos pasos: el archivo se analiza en Celery (`process_import_batch`) y queda en
+  vista previa (válidas, con error, duplicadas); al confirmar se crean las marcaciones. Un lote
+  confirmado se puede revertir: sus marcaciones se anulan, no se borran.
+- Un `Punch` nunca se edita ni se borra (trigger en PostgreSQL): se corrige (marcación nueva
+  enlazada a la original, que queda anulada) o se anula con motivo.
+- No puede haber dos marcaciones vigentes del mismo empleado en el mismo segundo: así se
+  detectan los duplicados al reimportar un archivo.
+- Los códigos del reloj (`ClockCode`) relacionan el PIN del equipo con el empleado; "0012" y
+  "12" se consideran el mismo código.
+- Con `docker compose`, la tarea corre en el servicio `worker`; tras cambiar tareas reinícialo.
+
 ## Cliente de la API (orval)
 
 El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:

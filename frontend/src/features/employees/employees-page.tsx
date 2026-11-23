@@ -1,10 +1,11 @@
-import { ChevronLeft, ChevronRight, Plus, Users } from 'lucide-react'
+import { Plus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { HrEmployeesListStatus } from '@/api/generated/model'
 import { useHrEmployeesList } from '@/api/generated/personal/personal'
 import { useProjectsList } from '@/api/generated/proyectos/proyectos'
 import { Badge } from '@/components/ui/badge'
+import { Pager } from '@/components/ui/pager'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EmptyState, LoadingBlock, PageHeader } from '@/components/ui/page'
@@ -14,8 +15,6 @@ import { useAccess } from '@/features/access/use-access'
 import { formatDate } from '@/lib/format'
 import { EMPLOYEE_STATUS } from './constants'
 import { EmployeeDialog } from './employee-dialog'
-
-const PAGE_SIZE = 50
 
 export function EmployeesPage() {
   const { can } = useAccess()
@@ -35,7 +34,6 @@ export function EmployeesPage() {
   })
   const rows = employees.data?.results ?? []
   const total = employees.data?.count ?? 0
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const filtered = !!(search || project || status !== 'active')
   const filter =
     <T,>(setter: (v: T) => void) =>
@@ -155,36 +153,7 @@ export function EmployeesPage() {
               })}
             </TBody>
           </Table>
-          <div className="text-muted-foreground flex items-center justify-between text-sm">
-            <span>
-              {total} empleado{total === 1 ? '' : 's'}
-            </span>
-            {pages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Página anterior"
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  <ChevronLeft className="size-4" />
-                </Button>
-                <span>
-                  Página {page} de {pages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Página siguiente"
-                  disabled={page >= pages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  <ChevronRight className="size-4" />
-                </Button>
-              </div>
-            )}
-          </div>
+          <Pager total={total} page={page} onPage={setPage} noun={['empleado', 'empleados']} />
         </>
       )}
       {creating && (

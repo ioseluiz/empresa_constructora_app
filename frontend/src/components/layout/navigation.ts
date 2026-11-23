@@ -36,7 +36,7 @@ export const navigation: NavSection[] = [
       { label: 'Inicio', to: '/', icon: LayoutDashboard },
       { label: 'Proyectos', to: '/proyectos', icon: HardHat, permission: 'projects.view' },
       { label: 'Empleados', to: '/empleados', icon: Users, permission: 'hr.employee.view' },
-      { label: 'Marcaciones', to: '/marcaciones', icon: Clock, sprint: 6 },
+      { label: 'Marcaciones', to: '/marcaciones', icon: Clock, permission: 'timeclock.view' },
       { label: 'Planilla', to: '/planilla', icon: Wallet, sprint: 8 },
       { label: 'Vacaciones', to: '/vacaciones', icon: CalendarDays, sprint: 11 },
       { label: 'Reportes', to: '/reportes', icon: FileText, sprint: 10 },

@@ -3,6 +3,7 @@ export * from './auth/auth';
 export * from './empresa/empresa';
 export * from './health/health';
 export * from './iam/iam';
+export * from './marcaciones/marcaciones';
 export * from './mfa/mfa';
 export * from './organizacion/organizacion';
 export * from './personal/personal';
