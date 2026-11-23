@@ -7,10 +7,10 @@
  */
 import type { ContractTypeEnum } from './contractTypeEnum';
 import type { EmploymentContractStatusEnum } from './employmentContractStatusEnum';
+import type { JornadaEnum } from './jornadaEnum';
 import type { PayBasisEnum } from './payBasisEnum';
 import type { PayFrequencyEnum } from './payFrequencyEnum';
 import type { SalaryRecord } from './salaryRecord';
-import type { ShiftEnum } from './shiftEnum';
 
 export interface EmploymentContract {
   readonly id: string;
@@ -35,7 +35,7 @@ export interface EmploymentContract {
   readonly pay_frequency_display: string;
   pay_basis: PayBasisEnum;
   readonly pay_basis_display: string;
-  shift?: ShiftEnum;
+  shift?: JornadaEnum;
   readonly shift_display: string;
   /** @pattern ^-?\d{0,3}(?:\.\d{0,1})?$ */
   weekly_hours?: string;

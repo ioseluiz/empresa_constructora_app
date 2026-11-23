@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils'
 
 const TABS = [
   { to: '/marcaciones', label: 'Marcaciones', permission: 'timeclock.view', end: true },
+  { to: '/marcaciones/jornadas', label: 'Jornadas', permission: 'timeclock.view' },
   { to: '/marcaciones/importaciones', label: 'Importaciones', permission: 'timeclock.import' },
+  { to: '/marcaciones/horarios', label: 'Horarios', permission: 'timeclock.view' },
   { to: '/marcaciones/configuracion', label: 'Relojes y plantillas', permission: 'timeclock.view' },
 ]
 

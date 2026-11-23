@@ -11,10 +11,10 @@
  * * `night` - Nocturna
  * * `mixed` - Mixta
  */
-export type ShiftEnum = typeof ShiftEnum[keyof typeof ShiftEnum];
+export type JornadaEnum = typeof JornadaEnum[keyof typeof JornadaEnum];
 
 
-export const ShiftEnum = {
+export const JornadaEnum = {
   day: 'day',
   night: 'night',
   mixed: 'mixed',

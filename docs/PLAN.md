@@ -425,7 +425,7 @@ Ramas: `main` (siempre desplegable) + ramas de feature con Pull Request obligato
 | 4 ✅ | Organización: centros de costo, proyectos, puestos, categorías y tarifas de convención, feriados de Panamá; alcance de roles por proyecto |
 | 5 ✅ | Expediente de empleados, contratos con historial salarial, asignación a proyectos, documentos |
 | 6 ✅ | **Marcaciones:** modelos, dispositivos, importadores ZKTeco y Excel/CSV, captura manual, lotes |
-| 7 | **Horarios y motor de jornada**, bandeja de excepciones, aprobación → TimeEntry |
+| 7 ✅ | **Horarios y motor de jornada**, bandeja de excepciones, aprobación → TimeEntry |
 | 8 | Motor de planilla, `payroll_pa`, parámetros legales con vigencia, tarifas de convención, descuentos |
 | 9 | Corridas de planilla, flujo de aprobación, planilla global consolidada |
 | 10 | **Comprobantes de pago**, archivo ACH, SIPE y Seguro Educativo |

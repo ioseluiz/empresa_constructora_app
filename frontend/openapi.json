@@ -6,6 +6,130 @@
         "description": "API para la gestión de empresas constructoras."
     },
     "paths": {
+        "/api/v1/attendance/time-entries/": {
+            "get": {
+                "operationId": "attendance_time_entries_list",
+                "description": "Horas aprobadas (solo lectura): se generan al aprobar jornadas.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "cost_center",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_from",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_to",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "day_kind",
+                        "schema": {
+                            "type": "string",
+                            "title": "Tipo de día",
+                            "enum": [
+                                "holiday",
+                                "regular",
+                                "rest"
+                            ]
+                        },
+                        "description": "* `regular` - Laborable\n* `rest` - Descanso\n* `holiday` - Feriado"
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "hour_type",
+                        "schema": {
+                            "type": "string",
+                            "title": "Tipo de hora",
+                            "enum": [
+                                "ordinary",
+                                "ot_day",
+                                "ot_mixed",
+                                "ot_night"
+                            ]
+                        },
+                        "description": "* `ordinary` - Ordinaria\n* `ot_day` - Extra diurna\n* `ot_night` - Extra nocturna\n* `ot_mixed` - Extra mixta (prolongación nocturna)"
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedTimeEntryList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/audit/logs/": {
             "get": {
                 "operationId": "audit_logs_list",
@@ -5881,6 +6005,432 @@
                 }
             }
         },
+        "/api/v1/timeclock/shift-assignments/": {
+            "get": {
+                "operationId": "timeclock_shift_assignments_list",
+                "description": "Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una\nfecha: el anterior se cierra el día previo.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "shift",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedShiftAssignmentList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/shift-assignments/{id}/": {
+            "delete": {
+                "operationId": "timeclock_shift_assignments_destroy",
+                "description": "Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una\nfecha: el anterior se cierra el día previo.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este asignación de horario.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/shift-assignments/bulk/": {
+            "post": {
+                "operationId": "timeclock_shift_assignments_bulk_create",
+                "description": "Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una\nfecha: el anterior se cierra el día previo.",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkShiftAssignmentRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkShiftAssignmentRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkShiftAssignmentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulkShiftResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/shifts/": {
+            "get": {
+                "operationId": "timeclock_shifts_list",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "is_active",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Shift"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "timeclock_shifts_create",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Shift"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/shifts/{id}/": {
+            "get": {
+                "operationId": "timeclock_shifts_retrieve",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este horario.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Shift"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "timeclock_shifts_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este horario.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Shift"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "timeclock_shifts_partial_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este horario.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedShiftRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedShiftRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedShiftRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Shift"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "timeclock_shifts_destroy",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este horario.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
         "/api/v1/timeclock/templates/": {
             "get": {
                 "operationId": "timeclock_templates_list",
@@ -6151,6 +6701,395 @@
                     }
                 }
             }
+        },
+        "/api/v1/timeclock/workdays/": {
+            "get": {
+                "operationId": "timeclock_workdays_list",
+                "description": "Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se\ngeneran las horas que usará la planilla.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "date_from",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_to",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "day_kind",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "holiday",
+                                "regular",
+                                "rest"
+                            ]
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "issue",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "office",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "Solo oficina central"
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "approved",
+                                "pending",
+                                "review"
+                            ]
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedWorkDayList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/workdays/{id}/": {
+            "get": {
+                "operationId": "timeclock_workdays_retrieve",
+                "description": "Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se\ngeneran las horas que usará la planilla.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este jornada.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkDay"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/workdays/{id}/reopen/": {
+            "post": {
+                "operationId": "timeclock_workdays_reopen_create",
+                "description": "Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se\ngeneran las horas que usará la planilla.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este jornada.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkDay"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/workdays/approve/": {
+            "post": {
+                "operationId": "timeclock_workdays_approve_create",
+                "description": "Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se\ngeneran las horas que usará la planilla.",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApproveWorkDaysRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApproveWorkDaysRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApproveWorkDaysRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApproveResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/workdays/calculate/": {
+            "post": {
+                "operationId": "timeclock_workdays_calculate_create",
+                "description": "Recalcula las jornadas del período (las aprobadas no cambian).",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CalculateWorkDaysRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CalculateWorkDaysRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CalculateWorkDaysRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CalculateResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/workdays/summary/": {
+            "get": {
+                "operationId": "timeclock_workdays_summary_retrieve",
+                "description": "Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se\ngeneran las horas que usará la planilla.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "date_from",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_to",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "day_kind",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "holiday",
+                                "regular",
+                                "rest"
+                            ]
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "issue",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "office",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "Solo oficina central"
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "approved",
+                                "pending",
+                                "review"
+                            ]
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkDaySummary"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -6187,6 +7126,38 @@
                 ],
                 "type": "string",
                 "description": "* `create` - Creación\n* `update` - Modificación\n* `delete` - Eliminación\n* `invite` - Invitación\n* `accept` - Aceptación\n* `revoke` - Revocación\n* `approve` - Aprobación\n* `export` - Exportación"
+            },
+            "ApproveResult": {
+                "type": "object",
+                "properties": {
+                    "approved": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "approved"
+                ]
+            },
+            "ApproveWorkDaysRequest": {
+                "type": "object",
+                "properties": {
+                    "ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "maxItems": 2000,
+                        "minItems": 1
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "ids"
+                ]
             },
             "AreaEnum": {
                 "enum": [
@@ -6360,6 +7331,49 @@
                 "type": "string",
                 "description": "* `zkteco` - ZKTeco\n* `other` - Otro"
             },
+            "BulkShiftAssignmentRequest": {
+                "type": "object",
+                "properties": {
+                    "shift": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "employees": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "employees",
+                    "shift",
+                    "start_date"
+                ]
+            },
+            "BulkShiftResult": {
+                "type": "object",
+                "properties": {
+                    "assigned": {
+                        "type": "integer"
+                    },
+                    "skipped": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "assigned",
+                    "skipped"
+                ]
+            },
             "CBACategory": {
                 "type": "object",
                 "description": "Valida código único por empresa con un mensaje claro (la BD también lo exige).",
@@ -6504,6 +7518,43 @@
                     "category",
                     "hourly_rate",
                     "valid_from"
+                ]
+            },
+            "CalculateResult": {
+                "type": "object",
+                "properties": {
+                    "workdays": {
+                        "type": "integer"
+                    },
+                    "skipped_approved": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "skipped_approved",
+                    "workdays"
+                ]
+            },
+            "CalculateWorkDaysRequest": {
+                "type": "object",
+                "properties": {
+                    "date_from": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "date_from",
+                    "date_to"
                 ]
             },
             "ClockCode": {
@@ -6717,6 +7768,15 @@
                     "code",
                     "name"
                 ]
+            },
+            "DayKindEnum": {
+                "enum": [
+                    "regular",
+                    "rest",
+                    "holiday"
+                ],
+                "type": "string",
+                "description": "* `regular` - Laborable\n* `rest` - Descanso\n* `holiday` - Feriado"
             },
             "Device": {
                 "type": "object",
@@ -7524,7 +8584,7 @@
                     "shift": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/ShiftEnum"
+                                "$ref": "#/components/schemas/JornadaEnum"
                             }
                         ],
                         "title": "Jornada"
@@ -7678,7 +8738,7 @@
                     "shift": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/ShiftEnum"
+                                "$ref": "#/components/schemas/JornadaEnum"
                             }
                         ],
                         "title": "Jornada"
@@ -7864,6 +8924,16 @@
                     "date",
                     "name"
                 ]
+            },
+            "HourTypeEnum": {
+                "enum": [
+                    "ordinary",
+                    "ot_day",
+                    "ot_night",
+                    "ot_mixed"
+                ],
+                "type": "string",
+                "description": "* `ordinary` - Ordinaria\n* `ot_day` - Extra diurna\n* `ot_night` - Extra nocturna\n* `ot_mixed` - Extra mixta (prolongación nocturna)"
             },
             "IdTypeEnum": {
                 "enum": [
@@ -8543,6 +9613,15 @@
                 "type": "string",
                 "description": "* `pending` - Pendiente\n* `accepted` - Aceptada\n* `revoked` - Revocada"
             },
+            "JornadaEnum": {
+                "enum": [
+                    "day",
+                    "night",
+                    "mixed"
+                ],
+                "type": "string",
+                "description": "* `day` - Diurna\n* `night` - Nocturna\n* `mixed` - Mixta"
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -9111,6 +10190,99 @@
                     }
                 }
             },
+            "PaginatedShiftAssignmentList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ShiftAssignment"
+                        }
+                    }
+                }
+            },
+            "PaginatedTimeEntryList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TimeEntry"
+                        }
+                    }
+                }
+            },
+            "PaginatedWorkDayList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkDay"
+                        }
+                    }
+                }
+            },
             "PasswordChangeRequest": {
                 "type": "object",
                 "properties": {
@@ -9609,7 +10781,7 @@
                     "shift": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/ShiftEnum"
+                                "$ref": "#/components/schemas/JornadaEnum"
                             }
                         ],
                         "title": "Jornada"
@@ -9952,6 +11124,83 @@
                             "maxLength": 64
                         },
                         "title": "Permisos"
+                    }
+                }
+            },
+            "PatchedShiftRequest": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Código",
+                        "maxLength": 20
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "format": "time",
+                        "title": "Entrada"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "format": "time",
+                        "title": "Salida"
+                    },
+                    "break_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Almuerzo / descanso (min)",
+                        "description": "Se descuenta cuando no hay marcaciones de salida y regreso del almuerzo."
+                    },
+                    "break_after_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Descontar descanso si la jornada supera (min)"
+                    },
+                    "workdays": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "maximum": 32767,
+                            "minimum": 0
+                        },
+                        "title": "Días laborables",
+                        "description": "0 = lunes … 6 = domingo. Los demás días son de descanso."
+                    },
+                    "late_tolerance_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Tolerancia de llegada (min)"
+                    },
+                    "overtime_rounding_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Redondeo de horas extra (min)",
+                        "description": "Las extras se cuentan en bloques completos de estos minutos (0 = sin redondeo)."
+                    },
+                    "count_early_arrival": {
+                        "type": "boolean",
+                        "title": "Contar llegada anticipada",
+                        "description": "Si no se marca, el tiempo antes de la hora de entrada no se paga."
+                    },
+                    "is_default": {
+                        "type": "boolean",
+                        "title": "Horario por defecto",
+                        "description": "Para empleados sin horario asignado."
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
                     }
                 }
             },
@@ -10949,14 +12198,242 @@
                 "type": "string",
                 "description": "* `M` - Masculino\n* `F` - Femenino"
             },
-            "ShiftEnum": {
-                "enum": [
-                    "day",
-                    "night",
-                    "mixed"
-                ],
-                "type": "string",
-                "description": "* `day` - Diurna\n* `night` - Nocturna\n* `mixed` - Mixta"
+            "Shift": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "title": "Código",
+                        "maxLength": 20
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "format": "time",
+                        "title": "Entrada"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "format": "time",
+                        "title": "Salida"
+                    },
+                    "break_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Almuerzo / descanso (min)",
+                        "description": "Se descuenta cuando no hay marcaciones de salida y regreso del almuerzo."
+                    },
+                    "break_after_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Descontar descanso si la jornada supera (min)"
+                    },
+                    "workdays": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "maximum": 32767,
+                            "minimum": 0
+                        },
+                        "title": "Días laborables",
+                        "description": "0 = lunes … 6 = domingo. Los demás días son de descanso."
+                    },
+                    "late_tolerance_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Tolerancia de llegada (min)"
+                    },
+                    "overtime_rounding_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Redondeo de horas extra (min)",
+                        "description": "Las extras se cuentan en bloques completos de estos minutos (0 = sin redondeo)."
+                    },
+                    "count_early_arrival": {
+                        "type": "boolean",
+                        "title": "Contar llegada anticipada",
+                        "description": "Si no se marca, el tiempo antes de la hora de entrada no se paga."
+                    },
+                    "is_default": {
+                        "type": "boolean",
+                        "title": "Horario por defecto",
+                        "description": "Para empleados sin horario asignado."
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    },
+                    "crosses_midnight": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "paid_minutes": {
+                        "type": "integer",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "code",
+                    "crosses_midnight",
+                    "end_time",
+                    "id",
+                    "name",
+                    "paid_minutes",
+                    "start_time"
+                ]
+            },
+            "ShiftAssignment": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "shift": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Horario"
+                    },
+                    "shift_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Hasta"
+                    }
+                },
+                "required": [
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "end_date",
+                    "id",
+                    "shift",
+                    "shift_name",
+                    "start_date"
+                ]
+            },
+            "ShiftRequest": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Código",
+                        "maxLength": 20
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "format": "time",
+                        "title": "Entrada"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "format": "time",
+                        "title": "Salida"
+                    },
+                    "break_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Almuerzo / descanso (min)",
+                        "description": "Se descuenta cuando no hay marcaciones de salida y regreso del almuerzo."
+                    },
+                    "break_after_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Descontar descanso si la jornada supera (min)"
+                    },
+                    "workdays": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "maximum": 32767,
+                            "minimum": 0
+                        },
+                        "title": "Días laborables",
+                        "description": "0 = lunes … 6 = domingo. Los demás días son de descanso."
+                    },
+                    "late_tolerance_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Tolerancia de llegada (min)"
+                    },
+                    "overtime_rounding_minutes": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Redondeo de horas extra (min)",
+                        "description": "Las extras se cuentan en bloques completos de estos minutos (0 = sin redondeo)."
+                    },
+                    "count_early_arrival": {
+                        "type": "boolean",
+                        "title": "Contar llegada anticipada",
+                        "description": "Si no se marca, el tiempo antes de la hora de entrada no se paga."
+                    },
+                    "is_default": {
+                        "type": "boolean",
+                        "title": "Horario por defecto",
+                        "description": "Para empleados sin horario asignado."
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                },
+                "required": [
+                    "code",
+                    "end_time",
+                    "name",
+                    "start_time"
+                ]
             },
             "Tenant": {
                 "type": "object",
@@ -11025,6 +12502,120 @@
                     "slug"
                 ]
             },
+            "TimeEntry": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "title": "Fecha"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Proyecto"
+                    },
+                    "project_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "cost_center": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Centro de costo"
+                    },
+                    "cost_center_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "hour_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/HourTypeEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Tipo de hora"
+                    },
+                    "hour_type_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "day_kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DayKindEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Tipo de día"
+                    },
+                    "jornada": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "hours": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Horas"
+                    },
+                    "workday": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Jornada"
+                    },
+                    "locked": {
+                        "type": "boolean",
+                        "readOnly": true,
+                        "title": "Usada en planilla",
+                        "description": "Ya no se puede reabrir la jornada."
+                    }
+                },
+                "required": [
+                    "cost_center",
+                    "cost_center_code",
+                    "date",
+                    "day_kind",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "hour_type",
+                    "hour_type_display",
+                    "hours",
+                    "id",
+                    "jornada",
+                    "locked",
+                    "project",
+                    "project_code",
+                    "workday"
+                ]
+            },
             "User": {
                 "type": "object",
                 "properties": {
@@ -11085,6 +12676,274 @@
                 },
                 "required": [
                     "reason"
+                ]
+            },
+            "WorkDay": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "title": "Fecha"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Proyecto"
+                    },
+                    "project_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "shift": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Horario"
+                    },
+                    "shift_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "day_kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DayKindEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Tipo de día"
+                    },
+                    "day_kind_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "jornada": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/JornadaEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "jornada_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "first_in": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Entrada"
+                    },
+                    "last_out": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Salida"
+                    },
+                    "segments": {
+                        "readOnly": true,
+                        "title": "Tramos trabajados"
+                    },
+                    "worked_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Minutos trabajados"
+                    },
+                    "break_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Descanso descontado"
+                    },
+                    "ordinary_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Ordinarios"
+                    },
+                    "overtime_day_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Extra diurna"
+                    },
+                    "overtime_night_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Extra nocturna"
+                    },
+                    "overtime_mixed_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Extra mixta (prolongación nocturna)"
+                    },
+                    "overtime_minutes": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "late_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Tardanza"
+                    },
+                    "missing_minutes": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Faltante"
+                    },
+                    "issues": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 30
+                        },
+                        "readOnly": true,
+                        "title": "Inconsistencias"
+                    },
+                    "issue_labels": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "readOnly": true
+                    },
+                    "blocking": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/WorkDayStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Estado"
+                    },
+                    "status_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "approved_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Aprobada el"
+                    },
+                    "approved_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Observaciones"
+                    }
+                },
+                "required": [
+                    "approved_at",
+                    "approved_by_email",
+                    "blocking",
+                    "break_minutes",
+                    "date",
+                    "day_kind",
+                    "day_kind_display",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "first_in",
+                    "id",
+                    "issue_labels",
+                    "issues",
+                    "jornada",
+                    "jornada_display",
+                    "last_out",
+                    "late_minutes",
+                    "missing_minutes",
+                    "notes",
+                    "ordinary_minutes",
+                    "overtime_day_minutes",
+                    "overtime_minutes",
+                    "overtime_mixed_minutes",
+                    "overtime_night_minutes",
+                    "project",
+                    "project_code",
+                    "segments",
+                    "shift",
+                    "shift_name",
+                    "status",
+                    "status_display",
+                    "worked_minutes"
+                ]
+            },
+            "WorkDayStatusEnum": {
+                "enum": [
+                    "pending",
+                    "review",
+                    "approved"
+                ],
+                "type": "string",
+                "description": "* `pending` - Por aprobar\n* `review` - Con inconsistencias\n* `approved` - Aprobada"
+            },
+            "WorkDaySummary": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer"
+                    },
+                    "review": {
+                        "type": "integer"
+                    },
+                    "pending": {
+                        "type": "integer"
+                    },
+                    "approved": {
+                        "type": "integer"
+                    },
+                    "worked_minutes": {
+                        "type": "integer"
+                    },
+                    "ordinary_minutes": {
+                        "type": "integer"
+                    },
+                    "overtime_minutes": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "approved",
+                    "ordinary_minutes",
+                    "overtime_minutes",
+                    "pending",
+                    "review",
+                    "total",
+                    "worked_minutes"
                 ]
             }
         },

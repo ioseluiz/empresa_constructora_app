@@ -23,6 +23,8 @@ import { BatchPage } from '@/features/timeclock/batch-page'
 import { TimeclockConfigPage } from '@/features/timeclock/config-page'
 import { ImportsPage } from '@/features/timeclock/imports-page'
 import { PunchesPage } from '@/features/timeclock/punches-page'
+import { ShiftsPage } from '@/features/timeclock/shifts-page'
+import { WorkDaysPage } from '@/features/timeclock/workdays-page'
 
 function guarded(permission: string, page: React.ReactNode) {
   return <RequirePermission permission={permission}>{page}</RequirePermission>
@@ -50,6 +52,11 @@ export const router = createBrowserRouter([
           { path: 'proyectos', element: guarded('projects.view', <ProjectsPage />) },
           { path: 'empleados', element: guarded('hr.employee.view', <EmployeesPage />) },
           { path: 'marcaciones', element: guarded('timeclock.view', <PunchesPage />) },
+          {
+            path: 'marcaciones/jornadas',
+            element: guarded('timeclock.view', <WorkDaysPage />),
+          },
+          { path: 'marcaciones/horarios', element: guarded('timeclock.view', <ShiftsPage />) },
           {
             path: 'marcaciones/importaciones',
             element: guarded('timeclock.import', <ImportsPage />),
