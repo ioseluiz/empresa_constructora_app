@@ -4592,6 +4592,1565 @@
                     }
                 }
             }
+        },
+        "/api/v1/timeclock/batches/": {
+            "get": {
+                "operationId": "timeclock_batches_list",
+                "description": "Importación en dos pasos: subir (se procesa en segundo plano y queda en vista previa) y\nconfirmar. Un lote confirmado puede revertirse: sus marcaciones se anulan, no se borran.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "device",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "source",
+                        "schema": {
+                            "type": "string",
+                            "title": "Origen",
+                            "enum": [
+                                "template",
+                                "zkteco"
+                            ]
+                        },
+                        "description": "* `zkteco` - Reloj ZKTeco (attlog)\n* `template` - Excel / CSV con plantilla"
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "title": "Estado",
+                            "enum": [
+                                "confirmed",
+                                "discarded",
+                                "failed",
+                                "pending",
+                                "preview",
+                                "processing",
+                                "reverted"
+                            ]
+                        },
+                        "description": "* `pending` - En cola\n* `processing` - Procesando\n* `preview` - Lista para confirmar\n* `confirmed` - Confirmada\n* `reverted` - Revertida\n* `discarded` - Descartada\n* `failed` - Error"
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedImportBatchList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "timeclock_batches_create",
+                "description": "Importación en dos pasos: subir (se procesa en segundo plano y queda en vista previa) y\nconfirmar. Un lote confirmado puede revertirse: sus marcaciones se anulan, no se borran.",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportBatchRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportBatchRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportBatchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportBatch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/batches/{id}/": {
+            "get": {
+                "operationId": "timeclock_batches_retrieve",
+                "description": "Importación en dos pasos: subir (se procesa en segundo plano y queda en vista previa) y\nconfirmar. Un lote confirmado puede revertirse: sus marcaciones se anulan, no se borran.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este lote de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportBatch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/batches/{id}/confirm/": {
+            "post": {
+                "operationId": "timeclock_batches_confirm_create",
+                "description": "Importación en dos pasos: subir (se procesa en segundo plano y queda en vista previa) y\nconfirmar. Un lote confirmado puede revertirse: sus marcaciones se anulan, no se borran.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este lote de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportBatch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/batches/{id}/discard/": {
+            "post": {
+                "operationId": "timeclock_batches_discard_create",
+                "description": "Importación en dos pasos: subir (se procesa en segundo plano y queda en vista previa) y\nconfirmar. Un lote confirmado puede revertirse: sus marcaciones se anulan, no se borran.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este lote de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportBatch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/batches/{id}/revert/": {
+            "post": {
+                "operationId": "timeclock_batches_revert_create",
+                "description": "Importación en dos pasos: subir (se procesa en segundo plano y queda en vista previa) y\nconfirmar. Un lote confirmado puede revertirse: sus marcaciones se anulan, no se borran.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este lote de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RevertRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RevertRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RevertRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportBatch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/batches/{id}/rows/": {
+            "get": {
+                "operationId": "timeclock_batches_rows_retrieve",
+                "description": "Importación en dos pasos: subir (se procesa en segundo plano y queda en vista previa) y\nconfirmar. Un lote confirmado puede revertirse: sus marcaciones se anulan, no se borran.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este lote de importación.",
+                        "required": true
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "row_status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "duplicate",
+                                "error",
+                                "valid"
+                            ]
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportRowPage"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/clock-codes/": {
+            "get": {
+                "operationId": "timeclock_clock_codes_list",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "device",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ClockCode"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "timeclock_clock_codes_create",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClockCodeRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClockCodeRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClockCodeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ClockCode"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/clock-codes/{id}/": {
+            "get": {
+                "operationId": "timeclock_clock_codes_retrieve",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este código de reloj.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ClockCode"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "timeclock_clock_codes_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este código de reloj.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClockCodeRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClockCodeRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClockCodeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ClockCode"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "timeclock_clock_codes_partial_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este código de reloj.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedClockCodeRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedClockCodeRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedClockCodeRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ClockCode"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "timeclock_clock_codes_destroy",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este código de reloj.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/devices/": {
+            "get": {
+                "operationId": "timeclock_devices_list",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "is_active",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Device"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "timeclock_devices_create",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Device"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/devices/{id}/": {
+            "get": {
+                "operationId": "timeclock_devices_retrieve",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este reloj de marcación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Device"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "timeclock_devices_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este reloj de marcación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Device"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "timeclock_devices_partial_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este reloj de marcación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedDeviceRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedDeviceRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedDeviceRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Device"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "timeclock_devices_destroy",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este reloj de marcación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/punches/": {
+            "get": {
+                "operationId": "timeclock_punches_list",
+                "description": "Las marcaciones no se editan ni se borran: se corrigen (nueva marcación enlazada) o se\nanulan con motivo.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "batch",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_from",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_to",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "device",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "direction",
+                        "schema": {
+                            "type": "string",
+                            "title": "Tipo",
+                            "enum": [
+                                "in",
+                                "out",
+                                "unknown"
+                            ]
+                        },
+                        "description": "* `in` - Entrada\n* `out` - Salida\n* `unknown` - Sin tipo"
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "include_void",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "Incluir anuladas"
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "source",
+                        "schema": {
+                            "type": "string",
+                            "title": "Origen",
+                            "enum": [
+                                "app",
+                                "device",
+                                "file",
+                                "manual"
+                            ]
+                        },
+                        "description": "* `device` - Reloj\n* `file` - Archivo\n* `manual` - Manual\n* `app` - App móvil"
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedPunchList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/punches/{id}/": {
+            "get": {
+                "operationId": "timeclock_punches_retrieve",
+                "description": "Las marcaciones no se editan ni se borran: se corrigen (nueva marcación enlazada) o se\nanulan con motivo.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este marcación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Punch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/punches/{id}/correct/": {
+            "post": {
+                "operationId": "timeclock_punches_correct_create",
+                "description": "Las marcaciones no se editan ni se borran: se corrigen (nueva marcación enlazada) o se\nanulan con motivo.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este marcación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CorrectPunchRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CorrectPunchRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CorrectPunchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Punch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/punches/{id}/void/": {
+            "post": {
+                "operationId": "timeclock_punches_void_create",
+                "description": "Las marcaciones no se editan ni se borran: se corrigen (nueva marcación enlazada) o se\nanulan con motivo.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este marcación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoidPunchRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoidPunchRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoidPunchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Punch"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/punches/manual/": {
+            "post": {
+                "operationId": "timeclock_punches_manual_create",
+                "description": "Registro manual, individual o por cuadrilla (misma hora a varios empleados).",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ManualPunchRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ManualPunchRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ManualPunchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ManualPunchResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/templates/": {
+            "get": {
+                "operationId": "timeclock_templates_list",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ImportTemplate"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "timeclock_templates_create",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportTemplateRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportTemplateRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportTemplateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportTemplate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/timeclock/templates/{id}/": {
+            "get": {
+                "operationId": "timeclock_templates_retrieve",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este plantilla de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportTemplate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "timeclock_templates_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este plantilla de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportTemplateRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportTemplateRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportTemplateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportTemplate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "timeclock_templates_partial_update",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este plantilla de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedImportTemplateRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedImportTemplateRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedImportTemplateRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportTemplate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "timeclock_templates_destroy",
+                "description": "Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este plantilla de importación.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "marcaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -4793,6 +6352,14 @@
                     ""
                 ]
             },
+            "BrandEnum": {
+                "enum": [
+                    "zkteco",
+                    "other"
+                ],
+                "type": "string",
+                "description": "* `zkteco` - ZKTeco\n* `other` - Otro"
+            },
             "CBACategory": {
                 "type": "object",
                 "description": "Valida código único por empresa con un mensaje claro (la BD también lo exige).",
@@ -4939,6 +6506,78 @@
                     "valid_from"
                 ]
             },
+            "ClockCode": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "device": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Reloj"
+                    },
+                    "device_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "title": "Código en el reloj",
+                        "maxLength": 30
+                    }
+                },
+                "required": [
+                    "code",
+                    "device_name",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "id"
+                ]
+            },
+            "ClockCodeRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "device": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Reloj"
+                    },
+                    "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Código en el reloj",
+                        "maxLength": 30
+                    }
+                },
+                "required": [
+                    "code",
+                    "employee"
+                ]
+            },
             "ContractTypeEnum": {
                 "enum": [
                     "indefinite",
@@ -4947,6 +6586,33 @@
                 ],
                 "type": "string",
                 "description": "* `indefinite` - Tiempo indefinido\n* `fixed_term` - Tiempo definido\n* `project` - Obra determinada"
+            },
+            "CorrectPunchRequest": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "time": {
+                        "type": "string",
+                        "format": "time"
+                    },
+                    "direction": {
+                        "$ref": "#/components/schemas/DirectionEnum"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "date",
+                    "direction",
+                    "reason",
+                    "time"
+                ]
             },
             "CostCenter": {
                 "type": "object",
@@ -5051,6 +6717,126 @@
                     "code",
                     "name"
                 ]
+            },
+            "Device": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "brand": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/BrandEnum"
+                            }
+                        ],
+                        "title": "Marca"
+                    },
+                    "brand_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Modelo",
+                        "maxLength": 60
+                    },
+                    "serial_number": {
+                        "type": "string",
+                        "title": "Número de serie",
+                        "maxLength": 60
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Proyecto",
+                        "description": "Vacío = oficina central."
+                    },
+                    "project_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "title": "Ubicación",
+                        "maxLength": 150
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                },
+                "required": [
+                    "brand_display",
+                    "id",
+                    "name",
+                    "project_code"
+                ]
+            },
+            "DeviceRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "brand": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/BrandEnum"
+                            }
+                        ],
+                        "title": "Marca"
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Modelo",
+                        "maxLength": 60
+                    },
+                    "serial_number": {
+                        "type": "string",
+                        "title": "Número de serie",
+                        "maxLength": 60
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Proyecto",
+                        "description": "Vacío = oficina central."
+                    },
+                    "location": {
+                        "type": "string",
+                        "title": "Ubicación",
+                        "maxLength": 150
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "DirectionEnum": {
+                "enum": [
+                    "in",
+                    "out",
+                    "unknown"
+                ],
+                "type": "string",
+                "description": "* `in` - Entrada\n* `out` - Salida\n* `unknown` - Sin tipo"
             },
             "Employee": {
                 "type": "object",
@@ -5433,6 +7219,15 @@
                     "file",
                     "kind"
                 ]
+            },
+            "EmployeeKeyEnum": {
+                "enum": [
+                    "clock_code",
+                    "employee_code",
+                    "id_number"
+                ],
+                "type": "string",
+                "description": "* `clock_code` - Código de reloj\n* `employee_code` - Número de empleado\n* `id_number` - Cédula / pasaporte"
             },
             "EmployeeRequest": {
                 "type": "object",
@@ -6078,6 +7873,537 @@
                 "type": "string",
                 "description": "* `cedula` - Cédula\n* `passport` - Pasaporte"
             },
+            "ImportBatch": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "source": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ImportBatchSourceEnum"
+                            }
+                        ],
+                        "title": "Origen"
+                    },
+                    "source_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "template": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Plantilla"
+                    },
+                    "template_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "device": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Reloj",
+                        "description": "Reloj de origen (obligatorio en archivos ZKTeco)."
+                    },
+                    "device_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Proyecto",
+                        "description": "Proyecto de las marcaciones cuando el reloj no lo indica."
+                    },
+                    "project_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "original_name": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Nombre original"
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ImportBatchStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Estado"
+                    },
+                    "status_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "error": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "total_rows": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Filas"
+                    },
+                    "valid_rows": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Válidas"
+                    },
+                    "error_rows": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Con error"
+                    },
+                    "duplicate_rows": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Duplicadas"
+                    },
+                    "first_punch": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Primera marcación"
+                    },
+                    "last_punch": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Última marcación"
+                    },
+                    "punch_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "confirmed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Confirmado"
+                    },
+                    "reverted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Revertido"
+                    },
+                    "revert_reason": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Motivo de reversión"
+                    },
+                    "created_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "confirmed_at",
+                    "created_at",
+                    "created_by_email",
+                    "device_name",
+                    "duplicate_rows",
+                    "error",
+                    "error_rows",
+                    "first_punch",
+                    "id",
+                    "last_punch",
+                    "original_name",
+                    "project_code",
+                    "punch_count",
+                    "revert_reason",
+                    "reverted_at",
+                    "source",
+                    "source_display",
+                    "status",
+                    "status_display",
+                    "template_name",
+                    "total_rows",
+                    "valid_rows"
+                ]
+            },
+            "ImportBatchRequest": {
+                "type": "object",
+                "properties": {
+                    "source": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ImportBatchSourceEnum"
+                            }
+                        ],
+                        "title": "Origen"
+                    },
+                    "template": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Plantilla"
+                    },
+                    "device": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Reloj",
+                        "description": "Reloj de origen (obligatorio en archivos ZKTeco)."
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Proyecto",
+                        "description": "Proyecto de las marcaciones cuando el reloj no lo indica."
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "writeOnly": true
+                    }
+                },
+                "required": [
+                    "file",
+                    "source"
+                ]
+            },
+            "ImportBatchSourceEnum": {
+                "enum": [
+                    "zkteco",
+                    "template"
+                ],
+                "type": "string",
+                "description": "* `zkteco` - Reloj ZKTeco (attlog)\n* `template` - Excel / CSV con plantilla"
+            },
+            "ImportBatchStatusEnum": {
+                "enum": [
+                    "pending",
+                    "processing",
+                    "preview",
+                    "confirmed",
+                    "reverted",
+                    "discarded",
+                    "failed"
+                ],
+                "type": "string",
+                "description": "* `pending` - En cola\n* `processing` - Procesando\n* `preview` - Lista para confirmar\n* `confirmed` - Confirmada\n* `reverted` - Revertida\n* `discarded` - Descartada\n* `failed` - Error"
+            },
+            "ImportRow": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "row_number": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Fila"
+                    },
+                    "raw": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Contenido"
+                    },
+                    "raw_code": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Código"
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Fecha y hora"
+                    },
+                    "direction": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Tipo"
+                    },
+                    "device_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ImportRowStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Estado"
+                    },
+                    "message": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Mensaje"
+                    }
+                },
+                "required": [
+                    "device_name",
+                    "direction",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "id",
+                    "message",
+                    "raw",
+                    "raw_code",
+                    "row_number",
+                    "status",
+                    "timestamp"
+                ]
+            },
+            "ImportRowPage": {
+                "type": "object",
+                "properties": {
+                    "count": {
+                        "type": "integer"
+                    },
+                    "next": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "previous": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImportRow"
+                        }
+                    }
+                },
+                "required": [
+                    "count",
+                    "next",
+                    "previous",
+                    "results"
+                ]
+            },
+            "ImportRowStatusEnum": {
+                "enum": [
+                    "valid",
+                    "error",
+                    "duplicate"
+                ],
+                "type": "string",
+                "description": "* `valid` - Válida\n* `error` - Con error\n* `duplicate` - Duplicada"
+            },
+            "ImportTemplate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "has_header": {
+                        "type": "boolean",
+                        "title": "Primera fila es encabezado"
+                    },
+                    "delimiter": {
+                        "type": "string",
+                        "title": "Separador (CSV)",
+                        "description": "Vacío = detectar automáticamente.",
+                        "maxLength": 1
+                    },
+                    "employee_key": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmployeeKeyEnum"
+                            }
+                        ],
+                        "title": "Identifica al empleado por"
+                    },
+                    "employee_column": {
+                        "type": "string",
+                        "title": "Columna de empleado",
+                        "maxLength": 60
+                    },
+                    "datetime_column": {
+                        "type": "string",
+                        "title": "Columna de fecha y hora",
+                        "description": "Si fecha y hora vienen juntas. Si no, usa las columnas de fecha y de hora.",
+                        "maxLength": 60
+                    },
+                    "date_column": {
+                        "type": "string",
+                        "title": "Columna de fecha",
+                        "maxLength": 60
+                    },
+                    "time_column": {
+                        "type": "string",
+                        "title": "Columna de hora",
+                        "maxLength": 60
+                    },
+                    "date_format": {
+                        "type": "string",
+                        "title": "Formato de fecha",
+                        "description": "Formato strftime, p. ej. %d/%m/%Y o %Y-%m-%d.",
+                        "maxLength": 30
+                    },
+                    "time_format": {
+                        "type": "string",
+                        "title": "Formato de hora",
+                        "maxLength": 30
+                    },
+                    "direction_column": {
+                        "type": "string",
+                        "title": "Columna de tipo (entrada/salida)",
+                        "maxLength": 60
+                    },
+                    "in_values": {
+                        "type": "string",
+                        "title": "Valores de entrada",
+                        "maxLength": 120
+                    },
+                    "out_values": {
+                        "type": "string",
+                        "title": "Valores de salida",
+                        "maxLength": 120
+                    },
+                    "device_column": {
+                        "type": "string",
+                        "title": "Columna de reloj (nº de serie o nombre)",
+                        "maxLength": 60
+                    }
+                },
+                "required": [
+                    "employee_column",
+                    "id",
+                    "name"
+                ]
+            },
+            "ImportTemplateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "has_header": {
+                        "type": "boolean",
+                        "title": "Primera fila es encabezado"
+                    },
+                    "delimiter": {
+                        "type": "string",
+                        "title": "Separador (CSV)",
+                        "description": "Vacío = detectar automáticamente.",
+                        "maxLength": 1
+                    },
+                    "employee_key": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmployeeKeyEnum"
+                            }
+                        ],
+                        "title": "Identifica al empleado por"
+                    },
+                    "employee_column": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Columna de empleado",
+                        "maxLength": 60
+                    },
+                    "datetime_column": {
+                        "type": "string",
+                        "title": "Columna de fecha y hora",
+                        "description": "Si fecha y hora vienen juntas. Si no, usa las columnas de fecha y de hora.",
+                        "maxLength": 60
+                    },
+                    "date_column": {
+                        "type": "string",
+                        "title": "Columna de fecha",
+                        "maxLength": 60
+                    },
+                    "time_column": {
+                        "type": "string",
+                        "title": "Columna de hora",
+                        "maxLength": 60
+                    },
+                    "date_format": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Formato de fecha",
+                        "description": "Formato strftime, p. ej. %d/%m/%Y o %Y-%m-%d.",
+                        "maxLength": 30
+                    },
+                    "time_format": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Formato de hora",
+                        "maxLength": 30
+                    },
+                    "direction_column": {
+                        "type": "string",
+                        "title": "Columna de tipo (entrada/salida)",
+                        "maxLength": 60
+                    },
+                    "in_values": {
+                        "type": "string",
+                        "title": "Valores de entrada",
+                        "maxLength": 120
+                    },
+                    "out_values": {
+                        "type": "string",
+                        "title": "Valores de salida",
+                        "maxLength": 120
+                    },
+                    "device_column": {
+                        "type": "string",
+                        "title": "Columna de reloj (nº de serie o nombre)",
+                        "maxLength": 60
+                    }
+                },
+                "required": [
+                    "employee_column",
+                    "name"
+                ]
+            },
             "Invitation": {
                 "type": "object",
                 "properties": {
@@ -6353,6 +8679,67 @@
                     "recovery_codes_remaining"
                 ]
             },
+            "ManualPunchRequest": {
+                "type": "object",
+                "properties": {
+                    "employees": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "time": {
+                        "type": "string",
+                        "format": "time"
+                    },
+                    "direction": {
+                        "$ref": "#/components/schemas/DirectionEnum"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    },
+                    "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "date",
+                    "direction",
+                    "employees",
+                    "reason",
+                    "time"
+                ]
+            },
+            "ManualPunchResult": {
+                "type": "object",
+                "properties": {
+                    "created": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Punch"
+                        }
+                    },
+                    "skipped": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "created",
+                    "skipped"
+                ]
+            },
             "MaritalStatusEnum": {
                 "enum": [
                     "single",
@@ -6600,6 +8987,37 @@
                     }
                 }
             },
+            "PaginatedImportBatchList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImportBatch"
+                        }
+                    }
+                }
+            },
             "PaginatedMemberList": {
                 "type": "object",
                 "required": [
@@ -6658,6 +9076,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/Project"
+                        }
+                    }
+                }
+            },
+            "PaginatedPunchList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Punch"
                         }
                     }
                 }
@@ -6771,6 +9220,28 @@
                     }
                 }
             },
+            "PatchedClockCodeRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "device": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Reloj"
+                    },
+                    "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Código en el reloj",
+                        "maxLength": 30
+                    }
+                }
+            },
             "PatchedCostCenterRequest": {
                 "type": "object",
                 "description": "Valida código único por empresa con un mensaje claro (la BD también lo exige).",
@@ -6800,6 +9271,51 @@
                         "format": "uuid",
                         "nullable": true,
                         "title": "Centro de costo padre"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Activo"
+                    }
+                }
+            },
+            "PatchedDeviceRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "brand": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/BrandEnum"
+                            }
+                        ],
+                        "title": "Marca"
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Modelo",
+                        "maxLength": 60
+                    },
+                    "serial_number": {
+                        "type": "string",
+                        "title": "Número de serie",
+                        "maxLength": 60
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Proyecto",
+                        "description": "Vacío = oficina central."
+                    },
+                    "location": {
+                        "type": "string",
+                        "title": "Ubicación",
+                        "maxLength": 150
                     },
                     "is_active": {
                         "type": "boolean",
@@ -7157,6 +9673,90 @@
                         "type": "boolean",
                         "title": "Descanso obligatorio remunerado",
                         "description": "Si se trabaja, aplica el recargo de feriado."
+                    }
+                }
+            },
+            "PatchedImportTemplateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Nombre",
+                        "maxLength": 120
+                    },
+                    "has_header": {
+                        "type": "boolean",
+                        "title": "Primera fila es encabezado"
+                    },
+                    "delimiter": {
+                        "type": "string",
+                        "title": "Separador (CSV)",
+                        "description": "Vacío = detectar automáticamente.",
+                        "maxLength": 1
+                    },
+                    "employee_key": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmployeeKeyEnum"
+                            }
+                        ],
+                        "title": "Identifica al empleado por"
+                    },
+                    "employee_column": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Columna de empleado",
+                        "maxLength": 60
+                    },
+                    "datetime_column": {
+                        "type": "string",
+                        "title": "Columna de fecha y hora",
+                        "description": "Si fecha y hora vienen juntas. Si no, usa las columnas de fecha y de hora.",
+                        "maxLength": 60
+                    },
+                    "date_column": {
+                        "type": "string",
+                        "title": "Columna de fecha",
+                        "maxLength": 60
+                    },
+                    "time_column": {
+                        "type": "string",
+                        "title": "Columna de hora",
+                        "maxLength": 60
+                    },
+                    "date_format": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Formato de fecha",
+                        "description": "Formato strftime, p. ej. %d/%m/%Y o %Y-%m-%d.",
+                        "maxLength": 30
+                    },
+                    "time_format": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Formato de hora",
+                        "maxLength": 30
+                    },
+                    "direction_column": {
+                        "type": "string",
+                        "title": "Columna de tipo (entrada/salida)",
+                        "maxLength": 60
+                    },
+                    "in_values": {
+                        "type": "string",
+                        "title": "Valores de entrada",
+                        "maxLength": 120
+                    },
+                    "out_values": {
+                        "type": "string",
+                        "title": "Valores de salida",
+                        "maxLength": 120
+                    },
+                    "device_column": {
+                        "type": "string",
+                        "title": "Columna de reloj (nº de serie o nombre)",
+                        "maxLength": 60
                     }
                 }
             },
@@ -7915,6 +10515,171 @@
                 "type": "string",
                 "description": "* `bocas_del_toro` - Bocas del Toro\n* `cocle` - Coclé\n* `colon` - Colón\n* `chiriqui` - Chiriquí\n* `darien` - Darién\n* `herrera` - Herrera\n* `los_santos` - Los Santos\n* `panama` - Panamá\n* `panama_oeste` - Panamá Oeste\n* `veraguas` - Veraguas\n* `guna_yala` - Comarca Guna Yala\n* `embera_wounaan` - Comarca Emberá-Wounaan\n* `ngabe_bugle` - Comarca Ngäbe-Buglé\n* `naso_tjer_di` - Comarca Naso Tjër Di"
             },
+            "Punch": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Fecha y hora"
+                    },
+                    "direction": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DirectionEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Tipo"
+                    },
+                    "direction_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "source": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PunchSourceEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Origen"
+                    },
+                    "source_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "device": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Reloj"
+                    },
+                    "device_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Proyecto"
+                    },
+                    "project_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "batch": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Lote"
+                    },
+                    "corrects": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Corrige a"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Motivo"
+                    },
+                    "is_void": {
+                        "type": "boolean",
+                        "readOnly": true,
+                        "default": false,
+                        "title": "Anulada"
+                    },
+                    "voided_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Anulada el"
+                    },
+                    "voided_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "void_reason": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Motivo de anulación"
+                    },
+                    "created_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "batch",
+                    "corrects",
+                    "created_at",
+                    "created_by_email",
+                    "device",
+                    "device_name",
+                    "direction",
+                    "direction_display",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "id",
+                    "is_void",
+                    "project",
+                    "project_code",
+                    "reason",
+                    "source",
+                    "source_display",
+                    "timestamp",
+                    "void_reason",
+                    "voided_at",
+                    "voided_by_email"
+                ]
+            },
+            "PunchSourceEnum": {
+                "enum": [
+                    "device",
+                    "file",
+                    "manual",
+                    "app"
+                ],
+                "type": "string",
+                "description": "* `device` - Reloj\n* `file` - Archivo\n* `manual` - Manual\n* `app` - App móvil"
+            },
             "RecoveryCodes": {
                 "type": "object",
                 "properties": {
@@ -7969,6 +10734,19 @@
                     "code",
                     "id",
                     "name"
+                ]
+            },
+            "RevertRequest": {
+                "type": "object",
+                "properties": {
+                    "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "reason"
                 ]
             },
             "Role": {
@@ -8294,6 +11072,19 @@
                     "id",
                     "memberships",
                     "mfa_enabled"
+                ]
+            },
+            "VoidPunchRequest": {
+                "type": "object",
+                "properties": {
+                    "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "reason"
                 ]
             }
         },

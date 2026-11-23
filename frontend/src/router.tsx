@@ -19,6 +19,10 @@ import { PositionsPage } from '@/features/catalogs/positions-page'
 import { ProjectsPage } from '@/features/projects/projects-page'
 import { EmployeeDetailPage } from '@/features/employees/employee-detail-page'
 import { EmployeesPage } from '@/features/employees/employees-page'
+import { BatchPage } from '@/features/timeclock/batch-page'
+import { TimeclockConfigPage } from '@/features/timeclock/config-page'
+import { ImportsPage } from '@/features/timeclock/imports-page'
+import { PunchesPage } from '@/features/timeclock/punches-page'
 
 function guarded(permission: string, page: React.ReactNode) {
   return <RequirePermission permission={permission}>{page}</RequirePermission>
@@ -45,6 +49,19 @@ export const router = createBrowserRouter([
           { path: 'cuenta/seguridad', element: <SecurityPage /> },
           { path: 'proyectos', element: guarded('projects.view', <ProjectsPage />) },
           { path: 'empleados', element: guarded('hr.employee.view', <EmployeesPage />) },
+          { path: 'marcaciones', element: guarded('timeclock.view', <PunchesPage />) },
+          {
+            path: 'marcaciones/importaciones',
+            element: guarded('timeclock.import', <ImportsPage />),
+          },
+          {
+            path: 'marcaciones/importaciones/:id',
+            element: guarded('timeclock.import', <BatchPage />),
+          },
+          {
+            path: 'marcaciones/configuracion',
+            element: guarded('timeclock.view', <TimeclockConfigPage />),
+          },
           {
             path: 'empleados/:id',
             element: guarded('hr.employee.view', <EmployeeDetailPage />),

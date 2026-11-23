@@ -184,11 +184,7 @@ export function EmployeeDialog({
         </>
       }
     >
-      <form
-        id="employee-form"
-        onSubmit={submit}
-        className="max-h-[65vh] space-y-6 overflow-y-auto pr-1"
-      >
+      <form id="employee-form" onSubmit={submit} className="space-y-6">
         {error && <Alert>{error}</Alert>}
         <Section title="Identificación">
           {field('first_name', 'Primer nombre', <Input required {...bind('first_name')} />)}
