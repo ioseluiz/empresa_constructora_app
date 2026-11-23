@@ -6,9 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ContractTypeEnum } from './contractTypeEnum';
+import type { JornadaEnum } from './jornadaEnum';
 import type { PayBasisEnum } from './payBasisEnum';
 import type { PayFrequencyEnum } from './payFrequencyEnum';
-import type { ShiftEnum } from './shiftEnum';
 
 export interface PatchedEmploymentContractRequest {
   employee?: string;
@@ -26,7 +26,7 @@ export interface PatchedEmploymentContractRequest {
   cost_center?: string;
   pay_frequency?: PayFrequencyEnum;
   pay_basis?: PayBasisEnum;
-  shift?: ShiftEnum;
+  shift?: JornadaEnum;
   /** @pattern ^-?\d{0,3}(?:\.\d{0,1})?$ */
   weekly_hours?: string;
   applies_cba?: boolean;

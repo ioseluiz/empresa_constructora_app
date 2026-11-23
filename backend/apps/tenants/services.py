@@ -36,4 +36,9 @@ def create_tenant(
     create_default_roles(tenant)
     year = timezone.localdate().year
     bootstrap_organization(tenant, years=(year, year + 1))
+    from apps.core.tenancy import tenant_context
+    from apps.timeclock.services import bootstrap_timeclock
+
+    with tenant_context(tenant):
+        bootstrap_timeclock()
     return tenant, owner

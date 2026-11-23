@@ -122,6 +122,23 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
   "12" se consideran el mismo código.
 - Con `docker compose`, la tarea corre en el servicio `worker`; tras cambiar tareas reinícialo.
 
+## Jornadas y horas aprobadas (`timeclock.engine`, `apps/attendance`)
+
+- Horarios (`Shift`) con entrada/salida (pueden cruzar la medianoche), almuerzo, días
+  laborables, tolerancia de llegada y redondeo de extras. Cada empresa nace con un horario por
+  defecto (7:00-16:00, lunes a viernes) para quien no tenga uno asignado.
+- `timeclock/engine.py` (funciones puras, probadas en `tests/test_engine.py`): agrupa las
+  marcaciones en jornadas, empareja entradas/salidas (infiere las "sin tipo"), aplica tolerancia
+  y almuerzo, clasifica la jornada (diurna/nocturna/mixta según el horario) y separa ordinarias
+  de extras diurnas (+25 %), nocturnas (+50 %) y prolongación nocturna (+75 %). Marca domingo o
+  descanso y feriado. Las reglas están documentadas en el módulo y deben validarse con asesoría
+  laboral.
+- Las jornadas se recalculan solas al importar, registrar, corregir o anular marcaciones, y con
+  "Calcular jornadas". Las aprobadas no se recalculan; se pueden reabrir mientras sus horas no
+  se hayan usado en planilla.
+- Aprobar una jornada genera `TimeEntry` (horas por tipo, tipo de día y centro de costo): es lo
+  único que usará la planilla. No se aprueban jornadas con marcaciones incompletas.
+
 ## Cliente de la API (orval)
 
 El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:

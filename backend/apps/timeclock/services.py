@@ -200,17 +200,31 @@ def confirm_batch(batch: ImportBatch, user: Any) -> int:
     batch.status = ImportBatch.Status.CONFIRMED
     batch.confirmed_at, batch.confirmed_by = timezone.now(), user
     batch.save()
+    _recalculate(batch.punches.filter(is_void=False))
     return batch.punches.count()
 
 
 @transaction.atomic
 def revert_batch(batch: ImportBatch, user: Any, reason: str) -> int:
     """Anula todas las marcaciones vigentes del lote (no se borran)."""
+    affected = list(batch.punches.filter(is_void=False).values_list("employee_id", "timestamp"))
     count = void_punches(batch.punches.filter(is_void=False), user, f"Lote revertido: {reason}")
+    _recalculate_pairs(affected)
     batch.status = ImportBatch.Status.REVERTED
     batch.reverted_at, batch.reverted_by, batch.revert_reason = timezone.now(), user, reason
     batch.save()
     return count
+
+
+def _recalculate_pairs(pairs: list[tuple[Any, Any]]) -> None:
+    from .workdays import recalculate_for
+
+    if pairs:
+        recalculate_for(pairs)
+
+
+def _recalculate(qs: Any) -> None:
+    _recalculate_pairs(list(qs.values_list("employee_id", "timestamp")))
 
 
 def void_punches(qs: Any, user: Any, reason: str) -> int:
@@ -248,6 +262,7 @@ def create_manual_punches(
         for e in employees
         if e.pk not in taken
     ]
+    _recalculate_pairs([(p.employee_id, p.timestamp) for p in created])
     return created, [e for e in employees if e.pk in taken]
 
 
@@ -257,7 +272,7 @@ def correct_punch(
 ) -> Punch:
     """Anula la marcación y crea la corregida, enlazada a la original."""
     void_punches(Punch.objects.filter(pk=punch.pk), user, f"Corregida: {reason}")
-    return Punch.objects.create(
+    new = Punch.objects.create(
         employee=punch.employee,
         timestamp=timestamp,
         direction=direction,
@@ -268,3 +283,30 @@ def correct_punch(
         reason=reason,
         created_by=user,
     )
+    _recalculate_pairs([(punch.employee_id, punch.timestamp), (new.employee_id, new.timestamp)])
+    return new
+
+
+@transaction.atomic
+def void_punch(punch: Punch, user: Any, reason: str) -> None:
+    void_punches(Punch.objects.filter(pk=punch.pk), user, reason)
+    _recalculate_pairs([(punch.employee_id, punch.timestamp)])
+
+
+DEFAULT_SHIFT = {
+    "code": "DIU",
+    "name": "Diurno 7:00 a 16:00",
+    "start_time": "07:00",
+    "end_time": "16:00",
+    "break_minutes": 60,
+}
+
+
+def bootstrap_timeclock() -> None:
+    """Horario por defecto de una empresa nueva (editable). Requiere tenant activo."""
+    from .models import Shift
+
+    if not Shift.objects.filter(is_default=True).exists():
+        Shift.objects.get_or_create(
+            code=DEFAULT_SHIFT["code"], defaults={**DEFAULT_SHIFT, "is_default": True}
+        )

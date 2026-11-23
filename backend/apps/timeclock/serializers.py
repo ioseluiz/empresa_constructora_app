@@ -3,13 +3,24 @@ from pathlib import PurePath
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.tenancy import require_current_tenant
 from apps.hr.models import Employee
 from apps.projects.models import Project
 
-from .models import ClockCode, Device, ImportBatch, ImportRow, ImportTemplate, Punch
+from .models import (
+    ClockCode,
+    Device,
+    ImportBatch,
+    ImportRow,
+    ImportTemplate,
+    Punch,
+    Shift,
+    ShiftAssignment,
+    WorkDay,
+)
 from .services import normalize_code
 
 MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -361,3 +372,206 @@ class ImportRowPageSerializer(serializers.Serializer):
     next = serializers.URLField(allow_null=True)
     previous = serializers.URLField(allow_null=True)
     results = ImportRowSerializer(many=True)
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    crosses_midnight = serializers.BooleanField(read_only=True)
+    paid_minutes = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Shift
+        fields = [
+            "id",
+            "code",
+            "name",
+            "start_time",
+            "end_time",
+            "break_minutes",
+            "break_after_minutes",
+            "workdays",
+            "late_tolerance_minutes",
+            "overtime_rounding_minutes",
+            "count_early_arrival",
+            "is_default",
+            "is_active",
+            "crosses_midnight",
+            "paid_minutes",
+        ]
+        read_only_fields = ["id"]
+
+    def validate_code(self, value: str) -> str:
+        value = value.strip().upper()
+        qs = Shift.objects.filter(code__iexact=value)
+        if self.instance is not None:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Ya existe un horario con este código.")
+        return value
+
+    def validate_workdays(self, value: list[int]) -> list[int]:
+        if not value or any(d < 0 or d > 6 for d in value):
+            raise serializers.ValidationError("Indica al menos un día (0 = lunes … 6 = domingo).")
+        return sorted(set(value))
+
+    def validate(self, attrs: dict) -> dict:
+        start = attrs.get("start_time", getattr(self.instance, "start_time", None))
+        end = attrs.get("end_time", getattr(self.instance, "end_time", None))
+        if start == end:
+            raise serializers.ValidationError(
+                {"end_time": "La salida debe ser distinta de la entrada."}
+            )
+        return attrs
+
+
+class ShiftAssignmentSerializer(serializers.ModelSerializer):
+    employee_code = serializers.CharField(source="employee.code", read_only=True)
+    employee_name = serializers.CharField(source="employee.full_name", read_only=True)
+    shift_name = serializers.CharField(source="shift.name", read_only=True)
+
+    class Meta:
+        model = ShiftAssignment
+        fields = [
+            "id",
+            "employee",
+            "employee_code",
+            "employee_name",
+            "shift",
+            "shift_name",
+            "start_date",
+            "end_date",
+        ]
+        read_only_fields = fields
+
+
+class BulkShiftAssignmentSerializer(serializers.Serializer):
+    shift = serializers.PrimaryKeyRelatedField(queryset=Shift.objects.none())
+    employees = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.none(), many=True)
+    start_date = serializers.DateField()
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["shift"].queryset = Shift.objects.filter(is_active=True)  # type: ignore[attr-defined]
+        self.fields["employees"].child_relation.queryset = Employee.objects.all()  # type: ignore[attr-defined]
+
+    def validate_employees(self, value: list[Employee]) -> list[Employee]:
+        if not value:
+            raise serializers.ValidationError("Selecciona al menos un empleado.")
+        return value
+
+
+class BulkShiftResultSerializer(serializers.Serializer):
+    assigned = serializers.IntegerField()
+    skipped = serializers.ListField(child=serializers.CharField())
+
+
+class WorkDaySerializer(serializers.ModelSerializer):
+    employee_code = serializers.CharField(source="employee.code", read_only=True)
+    employee_name = serializers.CharField(source="employee.full_name", read_only=True)
+    project_code = serializers.CharField(source="project.code", read_only=True, default=None)
+    shift_name = serializers.CharField(source="shift.name", read_only=True, default=None)
+    day_kind_display = serializers.CharField(source="get_day_kind_display", read_only=True)
+    jornada_display = serializers.CharField(source="get_jornada_display", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    overtime_minutes = serializers.IntegerField(read_only=True)
+    issue_labels = serializers.SerializerMethodField()
+    blocking = serializers.SerializerMethodField()
+    approved_by_email = serializers.EmailField(
+        source="approved_by.email", read_only=True, default=None
+    )
+
+    class Meta:
+        model = WorkDay
+        fields = [
+            "id",
+            "employee",
+            "employee_code",
+            "employee_name",
+            "date",
+            "project",
+            "project_code",
+            "shift",
+            "shift_name",
+            "day_kind",
+            "day_kind_display",
+            "jornada",
+            "jornada_display",
+            "first_in",
+            "last_out",
+            "segments",
+            "worked_minutes",
+            "break_minutes",
+            "ordinary_minutes",
+            "overtime_day_minutes",
+            "overtime_night_minutes",
+            "overtime_mixed_minutes",
+            "overtime_minutes",
+            "late_minutes",
+            "missing_minutes",
+            "issues",
+            "issue_labels",
+            "blocking",
+            "status",
+            "status_display",
+            "approved_at",
+            "approved_by_email",
+            "notes",
+        ]
+        read_only_fields = fields
+
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
+    def get_issue_labels(self, obj: WorkDay) -> list[str]:
+        from .engine import ISSUE_LABELS
+
+        return [ISSUE_LABELS.get(code, code) for code in obj.issues]
+
+    def get_blocking(self, obj: WorkDay) -> bool:
+        from .engine import BLOCKING_ISSUES
+
+        return bool(BLOCKING_ISSUES & set(obj.issues))
+
+
+class CalculateWorkDaysSerializer(serializers.Serializer):
+    date_from = serializers.DateField()
+    date_to = serializers.DateField()
+    project = serializers.PrimaryKeyRelatedField(
+        queryset=Project.objects.none(), required=False, allow_null=True
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["project"].queryset = Project.objects.all()  # type: ignore[attr-defined]
+
+    def validate(self, attrs: dict) -> dict:
+        from .workdays import MAX_RANGE_DAYS
+
+        if attrs["date_to"] < attrs["date_from"]:
+            raise serializers.ValidationError({"date_to": "Debe ser posterior a la fecha inicial."})
+        if (attrs["date_to"] - attrs["date_from"]).days >= MAX_RANGE_DAYS:
+            raise serializers.ValidationError(
+                {"date_to": f"Máximo {MAX_RANGE_DAYS} días por cálculo."}
+            )
+        return attrs
+
+
+class CalculateResultSerializer(serializers.Serializer):
+    workdays = serializers.IntegerField()
+    skipped_approved = serializers.IntegerField()
+
+
+class ApproveWorkDaysSerializer(serializers.Serializer):
+    ids = serializers.ListField(child=serializers.UUIDField(), min_length=1, max_length=2000)
+    notes = serializers.CharField(max_length=255, required=False, allow_blank=True)
+
+
+class ApproveResultSerializer(serializers.Serializer):
+    approved = serializers.IntegerField()
+
+
+class WorkDaySummarySerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    review = serializers.IntegerField()
+    pending = serializers.IntegerField()
+    approved = serializers.IntegerField()
+    worked_minutes = serializers.IntegerField()
+    ordinary_minutes = serializers.IntegerField()
+    overtime_minutes = serializers.IntegerField()

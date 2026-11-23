@@ -1,9 +1,11 @@
+from datetime import timedelta
 from typing import Any
 
 from django.db import transaction
-from django.db.models import Count, ProtectedError, Q, QuerySet
+from django.db.models import Count, F, ProtectedError, Q, QuerySet, Sum
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -12,17 +14,35 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.audit import services as audit
+from apps.hr.models import Employee
 from apps.hr.serializers import current_assignments
 from apps.iam.permissions import (
     TenantPermissionMixin,
     filter_by_project_scope,
+    get_request_permissions,
     get_request_scope,
 )
 from apps.iam.services import ALL_PROJECTS
 
-from . import services
-from .models import ClockCode, Device, ImportBatch, ImportRow, ImportTemplate, Punch
+from . import services, workdays
+from .models import (
+    ClockCode,
+    Device,
+    ImportBatch,
+    ImportRow,
+    ImportTemplate,
+    Punch,
+    Shift,
+    ShiftAssignment,
+    WorkDay,
+)
 from .serializers import (
+    ApproveResultSerializer,
+    ApproveWorkDaysSerializer,
+    BulkShiftAssignmentSerializer,
+    BulkShiftResultSerializer,
+    CalculateResultSerializer,
+    CalculateWorkDaysSerializer,
     ClockCodeSerializer,
     CorrectPunchSerializer,
     DeviceSerializer,
@@ -34,7 +54,11 @@ from .serializers import (
     ManualPunchSerializer,
     PunchSerializer,
     RevertSerializer,
+    ShiftAssignmentSerializer,
+    ShiftSerializer,
     VoidPunchSerializer,
+    WorkDaySerializer,
+    WorkDaySummarySerializer,
 )
 from .tasks import process_import_batch
 
@@ -359,9 +383,7 @@ class PunchViewSet(
         punch = self._get_active()
         params = VoidPunchSerializer(data=request.data)
         params.is_valid(raise_exception=True)
-        services.void_punches(
-            Punch.objects.filter(pk=punch.pk), request.user, params.validated_data["reason"]
-        )
+        services.void_punch(punch, request.user, params.validated_data["reason"])
         audit.record(
             audit.Action.REVOKE,
             punch,
@@ -369,3 +391,264 @@ class PunchViewSet(
             changes={"motivo": params.validated_data["reason"]},
         )
         return Response(PunchSerializer(self.get_queryset().get(pk=punch.pk)).data)
+
+
+# ---------------------------------------------------------------------------- Sprint 7: jornadas
+
+APPROVE = "timeclock.approve"
+CALCULATORS = (MANUAL, IMPORT, APPROVE)
+
+
+@extend_schema(tags=["marcaciones"])
+class ShiftViewSet(AuditedConfigViewSet):
+    serializer_class = ShiftSerializer
+    filterset_fields = ["is_active"]
+
+    def get_queryset(self) -> QuerySet[Shift]:
+        return Shift.objects.all()
+
+    def _clear_default(self, serializer: serializers.BaseSerializer) -> None:
+        if serializer.validated_data.get("is_default"):
+            qs = Shift.objects.filter(is_default=True)
+            if serializer.instance is not None:
+                qs = qs.exclude(pk=serializer.instance.pk)
+            qs.update(is_default=False)
+
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
+        self._clear_default(serializer)
+        super().perform_create(serializer)
+
+    def perform_update(self, serializer: serializers.BaseSerializer) -> None:
+        self._clear_default(serializer)
+        super().perform_update(serializer)
+
+
+@extend_schema(tags=["marcaciones"])
+class ShiftAssignmentViewSet(
+    TenantPermissionMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+    fecha: el anterior se cierra el día previo."""
+
+    serializer_class = ShiftAssignmentSerializer
+    action_permissions = {"list": VIEW, "destroy": IMPORT, "bulk": IMPORT}
+    filterset_fields = ["employee", "shift"]
+    search_fields = ["employee__first_name", "employee__last_name", "employee__code"]
+
+    def get_queryset(self) -> QuerySet[ShiftAssignment]:
+        return ShiftAssignment.objects.select_related("employee", "shift")
+
+    def perform_destroy(self, instance: ShiftAssignment) -> None:
+        audit.record(
+            audit.Action.DELETE,
+            instance,
+            request=self.request,
+            changes={"horario": instance.shift.name, "desde": instance.start_date},
+        )
+        instance.delete()
+
+    @extend_schema(
+        request=BulkShiftAssignmentSerializer, responses={201: BulkShiftResultSerializer}
+    )
+    @action(detail=False, methods=["post"])
+    def bulk(self, request: Request) -> Response:
+        params = BulkShiftAssignmentSerializer(data=request.data)
+        params.is_valid(raise_exception=True)
+        shift, start = params.validated_data["shift"], params.validated_data["start_date"]
+        assigned, skipped = 0, []
+        with transaction.atomic():
+            for employee in params.validated_data["employees"]:
+                later = ShiftAssignment.objects.filter(employee=employee, start_date__gte=start)
+                if later.exists():
+                    skipped.append(
+                        f"{employee.full_name} (ya tiene un horario desde esa fecha o después)"
+                    )
+                    continue
+                ShiftAssignment.objects.filter(
+                    Q(end_date__isnull=True) | Q(end_date__gte=start),
+                    employee=employee,
+                    start_date__lt=start,
+                ).update(end_date=start - timedelta(days=1))
+                ShiftAssignment.objects.create(
+                    employee=employee, shift=shift, start_date=start, created_by=request.user
+                )
+                assigned += 1
+            audit.record(
+                audit.Action.CREATE,
+                shift,
+                request=request,
+                changes={"asignado_a": assigned, "desde": start.isoformat()},
+            )
+        return Response({"assigned": assigned, "skipped": skipped}, status=status.HTTP_201_CREATED)
+
+
+WORKDAY_PARAMS = [
+    OpenApiParameter("date_from", OpenApiTypes.DATE),
+    OpenApiParameter("date_to", OpenApiTypes.DATE),
+    OpenApiParameter("project", OpenApiTypes.UUID),
+    OpenApiParameter("office", OpenApiTypes.BOOL, description="Solo oficina central"),
+    OpenApiParameter("employee", OpenApiTypes.UUID),
+    OpenApiParameter("status", str, enum=WorkDay.Status.values),
+    OpenApiParameter("day_kind", str, enum=WorkDay.DayKind.values),
+    OpenApiParameter("issue", str),
+    OpenApiParameter("search", str),
+]
+
+
+@extend_schema_view(list=extend_schema(parameters=WORKDAY_PARAMS))
+@extend_schema(tags=["marcaciones"])
+class WorkDayViewSet(
+    TenantPermissionMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+    generan las horas que usará la planilla."""
+
+    serializer_class = WorkDaySerializer
+    action_permissions = {
+        "list": VIEW,
+        "retrieve": VIEW,
+        "summary": VIEW,
+        "calculate": VIEW,  # además, uno de CALCULATORS (se valida en la acción)
+        "approve": APPROVE,
+        "reopen": APPROVE,
+    }
+    filter_backends: list[Any] = []
+
+    def get_queryset(self) -> QuerySet[WorkDay]:
+        qs = WorkDay.objects.select_related("employee", "project", "shift", "approved_by")
+        if getattr(self, "swagger_fake_view", False):
+            return qs
+        return filter_by_project_scope(qs, self.request, VIEW)
+
+    def filtered(self) -> QuerySet[WorkDay]:
+        p = self.request.query_params
+        qs = self.get_queryset()
+        if p.get("date_from"):
+            qs = qs.filter(date__gte=p["date_from"])
+        if p.get("date_to"):
+            qs = qs.filter(date__lte=p["date_to"])
+        if p.get("project"):
+            qs = qs.filter(project_id=p["project"])
+        if p.get("office") in ("true", "1"):
+            qs = qs.filter(project__isnull=True)
+        if p.get("employee"):
+            qs = qs.filter(employee_id=p["employee"])
+        if p.get("status"):
+            qs = qs.filter(status=p["status"])
+        if p.get("day_kind"):
+            qs = qs.filter(day_kind=p["day_kind"])
+        if p.get("issue"):
+            qs = qs.filter(issues__contains=[p["issue"]])
+        if p.get("search"):
+            term = p["search"]
+            qs = qs.filter(
+                Q(employee__first_name__icontains=term)
+                | Q(employee__last_name__icontains=term)
+                | Q(employee__code__icontains=term)
+                | Q(employee__id_number__icontains=term)
+            )
+        return qs.order_by("-date", "employee__last_name", "employee__first_name")
+
+    def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        page = self.paginate_queryset(self.filtered())
+        return self.get_paginated_response(self.get_serializer(page, many=True).data)
+
+    @extend_schema(parameters=WORKDAY_PARAMS, responses=WorkDaySummarySerializer)
+    @action(detail=False, methods=["get"])
+    def summary(self, request: Request) -> Response:
+        qs = self.filtered()
+        totals = qs.aggregate(
+            total=Count("id"),
+            review=Count("id", filter=Q(status=WorkDay.Status.REVIEW)),
+            pending=Count("id", filter=Q(status=WorkDay.Status.PENDING)),
+            approved=Count("id", filter=Q(status=WorkDay.Status.APPROVED)),
+            worked_minutes=Sum("worked_minutes"),
+            ordinary_minutes=Sum("ordinary_minutes"),
+            overtime_minutes=Sum(
+                F("overtime_day_minutes")
+                + F("overtime_night_minutes")
+                + F("overtime_mixed_minutes")
+            ),
+        )
+        return Response({k: v or 0 for k, v in totals.items()})
+
+    @extend_schema(request=CalculateWorkDaysSerializer, responses=CalculateResultSerializer)
+    @action(detail=False, methods=["post"])
+    def calculate(self, request: Request) -> Response:
+        """Recalcula las jornadas del período (las aprobadas no cambian)."""
+        perms = get_request_permissions(request)
+        allowed = [p for p in CALCULATORS if p in perms]
+        if not allowed:
+            raise PermissionDenied("No tienes permiso para calcular jornadas.")
+        params = CalculateWorkDaysSerializer(data=request.data)
+        params.is_valid(raise_exception=True)
+        start, end = params.validated_data["date_from"], params.validated_data["date_to"]
+        project = params.validated_data.get("project")
+        scopes = [get_request_scope(request, p) for p in allowed]
+        if not any(s == ALL_PROJECTS for s in scopes) and (
+            project is None or not any(project.pk in s for s in scopes)
+        ):
+            raise PermissionDenied("Calcula las jornadas de un proyecto asignado a tu rol.")
+        employees = Employee.objects.filter(hire_date__lte=end).filter(
+            Q(termination_date__isnull=True) | Q(termination_date__gte=start)
+        )
+        if project is not None:
+            in_project = Q(
+                assignments__project=project,
+                assignments__start_date__lte=end,
+            ) & (Q(assignments__end_date__isnull=True) | Q(assignments__end_date__gte=start))
+            punched = Q(
+                punches__project=project,
+                punches__timestamp__date__gte=start,
+                punches__timestamp__date__lte=end,
+            )
+            employees = employees.filter(in_project | punched).distinct()
+        result = workdays.calculate(employees, start, end)
+        return Response(result)
+
+    @extend_schema(request=ApproveWorkDaysSerializer, responses=ApproveResultSerializer)
+    @action(detail=False, methods=["post"])
+    def approve(self, request: Request) -> Response:
+        params = ApproveWorkDaysSerializer(data=request.data)
+        params.is_valid(raise_exception=True)
+        items = list(
+            self.get_queryset()
+            .filter(pk__in=params.validated_data["ids"])
+            .select_related("project__cost_center", "tenant")
+        )
+        if len(items) != len(set(params.validated_data["ids"])):
+            raise ValidationError("Algunas jornadas no existen o no tienes acceso a ellas.")
+        for w in items:
+            ensure_project_scope(request, APPROVE, w.project_id)
+        try:
+            workdays.approve(items, request.user, params.validated_data.get("notes", ""))
+        except workdays.ApprovalError as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
+        audit.record(
+            audit.Action.APPROVE,
+            object_type="timeclock.workday",
+            object_repr=f"{len(items)} jornadas",
+            request=request,
+            changes={"jornadas": [f"{w.employee.code} {w.date}" for w in items][:200]},
+        )
+        return Response({"approved": len(items)})
+
+    @extend_schema(request=None, responses=WorkDaySerializer)
+    @action(detail=True, methods=["post"])
+    def reopen(self, request: Request, pk: str | None = None) -> Response:
+        workday = self.get_object()
+        ensure_project_scope(request, APPROVE, workday.project_id)
+        if workday.status != WorkDay.Status.APPROVED:
+            raise ValidationError("La jornada no está aprobada.")
+        try:
+            workdays.reopen(workday)
+        except workdays.ApprovalError as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
+        audit.record(audit.Action.UPDATE, workday, request=request, changes={"reabierta": True})
+        return Response(self.get_serializer(workday).data)

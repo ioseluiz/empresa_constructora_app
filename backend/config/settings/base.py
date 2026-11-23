@@ -42,6 +42,7 @@ LOCAL_APPS = [
     "apps.projects",
     "apps.hr",
     "apps.timeclock",
+    "apps.attendance",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -146,6 +147,8 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": "/api/v1",
     "COMPONENT_SPLIT_REQUEST": True,
+    # Mismo conjunto de valores en contratos y jornadas: un solo enum en el cliente.
+    "ENUM_NAME_OVERRIDES": {"JornadaEnum": "apps.timeclock.models.WorkDay.Jornada"},
 }
 
 # Autenticación JWT: access token corto en memoria del navegador, refresh token rotativo

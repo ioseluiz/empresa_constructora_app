@@ -9,9 +9,12 @@ Principios:
 - Las horas se guardan con zona horaria; los archivos del reloj traen hora local de la empresa.
 """
 
+from django.contrib.postgres.constraints import ExclusionConstraint
+from django.contrib.postgres.fields import ArrayField, RangeOperators
 from django.db import models
 from django.db.models import Q
 
+from apps.core.db import DateRange
 from apps.core.models import TenantAwareModel
 
 
@@ -350,3 +353,191 @@ class Punch(TenantAwareModel):
 
     def __str__(self) -> str:
         return f"{self.employee_id} {self.timestamp:%Y-%m-%d %H:%M} {self.direction}"
+
+
+def default_workdays() -> list[int]:
+    return [0, 1, 2, 3, 4]  # lunes a viernes (0 = lunes … 6 = domingo)
+
+
+class Shift(TenantAwareModel):
+    """Horario de trabajo. Si la salida es menor o igual que la entrada, cruza la medianoche."""
+
+    code = models.CharField("código", max_length=20)
+    name = models.CharField("nombre", max_length=120)
+    start_time = models.TimeField("entrada")
+    end_time = models.TimeField("salida")
+    break_minutes = models.PositiveSmallIntegerField(
+        "almuerzo / descanso (min)",
+        default=60,
+        help_text="Se descuenta cuando no hay marcaciones de salida y regreso del almuerzo.",
+    )
+    break_after_minutes = models.PositiveSmallIntegerField(
+        "descontar descanso si la jornada supera (min)", default=360
+    )
+    workdays = ArrayField(
+        models.PositiveSmallIntegerField(),
+        verbose_name="días laborables",
+        default=default_workdays,
+        help_text="0 = lunes … 6 = domingo. Los demás días son de descanso.",
+    )
+    late_tolerance_minutes = models.PositiveSmallIntegerField(
+        "tolerancia de llegada (min)", default=5
+    )
+    overtime_rounding_minutes = models.PositiveSmallIntegerField(
+        "redondeo de horas extra (min)",
+        default=15,
+        help_text="Las extras se cuentan en bloques completos de estos minutos (0 = sin redondeo).",
+    )
+    count_early_arrival = models.BooleanField(
+        "contar llegada anticipada",
+        default=False,
+        help_text="Si no se marca, el tiempo antes de la hora de entrada no se paga.",
+    )
+    is_default = models.BooleanField(
+        "horario por defecto", default=False, help_text="Para empleados sin horario asignado."
+    )
+    is_active = models.BooleanField("activo", default=True)
+
+    class Meta:
+        verbose_name = "horario"
+        verbose_name_plural = "horarios"
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["tenant", "code"], name="unique_shift_code"),
+            models.UniqueConstraint(
+                fields=["tenant"], condition=Q(is_default=True), name="single_default_shift"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.start_time:%H:%M}–{self.end_time:%H:%M})"
+
+    @property
+    def crosses_midnight(self) -> bool:
+        return self.end_time <= self.start_time
+
+    @property
+    def span_minutes(self) -> int:
+        start = self.start_time.hour * 60 + self.start_time.minute
+        end = self.end_time.hour * 60 + self.end_time.minute
+        return (end - start) % (24 * 60) or 24 * 60
+
+    @property
+    def paid_minutes(self) -> int:
+        deduct = self.break_minutes if self.span_minutes > self.break_after_minutes else 0
+        return self.span_minutes - deduct
+
+
+class ShiftAssignment(TenantAwareModel):
+    employee = models.ForeignKey(
+        "hr.Employee", verbose_name="empleado", on_delete=models.PROTECT, related_name="shifts"
+    )
+    shift = models.ForeignKey(
+        Shift, verbose_name="horario", on_delete=models.PROTECT, related_name="assignments"
+    )
+    start_date = models.DateField("desde")
+    end_date = models.DateField("hasta", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "asignación de horario"
+        verbose_name_plural = "asignaciones de horario"
+        ordering = ["-start_date"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(end_date__isnull=True) | Q(end_date__gte=models.F("start_date")),
+                name="shift_assignment_dates_consistent",
+            ),
+            ExclusionConstraint(
+                name="exclude_overlapping_shift_assignments",
+                expressions=[
+                    (DateRange("start_date", "end_date"), RangeOperators.OVERLAPS),
+                    ("employee", RangeOperators.EQUAL),
+                ],
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.employee_id} → {self.shift_id} desde {self.start_date}"
+
+
+class WorkDay(TenantAwareModel):
+    """Jornada calculada por el motor a partir de las marcaciones. Al aprobarla se generan las
+    horas (`attendance.TimeEntry`) que usa la planilla."""
+
+    class DayKind(models.TextChoices):
+        REGULAR = "regular", "Laborable"
+        REST = "rest", "Descanso"
+        HOLIDAY = "holiday", "Feriado"
+
+    class Jornada(models.TextChoices):
+        DAY = "day", "Diurna"
+        NIGHT = "night", "Nocturna"
+        MIXED = "mixed", "Mixta"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Por aprobar"
+        REVIEW = "review", "Con inconsistencias"
+        APPROVED = "approved", "Aprobada"
+
+    employee = models.ForeignKey(
+        "hr.Employee", verbose_name="empleado", on_delete=models.PROTECT, related_name="workdays"
+    )
+    date = models.DateField("fecha")
+    project = models.ForeignKey(
+        "projects.Project",
+        verbose_name="proyecto",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="workdays",
+    )
+    shift = models.ForeignKey(
+        Shift,
+        verbose_name="horario",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    day_kind = models.CharField("tipo de día", max_length=8, choices=DayKind.choices)
+    jornada = models.CharField("jornada", max_length=5, choices=Jornada.choices, blank=True)
+    first_in = models.DateTimeField("entrada", null=True, blank=True)
+    last_out = models.DateTimeField("salida", null=True, blank=True)
+    segments = models.JSONField("tramos trabajados", default=list, blank=True)
+    worked_minutes = models.PositiveIntegerField("minutos trabajados", default=0)
+    break_minutes = models.PositiveIntegerField("descanso descontado", default=0)
+    ordinary_minutes = models.PositiveIntegerField("ordinarios", default=0)
+    overtime_day_minutes = models.PositiveIntegerField("extra diurna", default=0)
+    overtime_night_minutes = models.PositiveIntegerField("extra nocturna", default=0)
+    overtime_mixed_minutes = models.PositiveIntegerField(
+        "extra mixta (prolongación nocturna)", default=0
+    )
+    late_minutes = models.PositiveIntegerField("tardanza", default=0)
+    missing_minutes = models.PositiveIntegerField("faltante", default=0)
+    issues = ArrayField(
+        models.CharField(max_length=30), verbose_name="inconsistencias", default=list, blank=True
+    )
+    status = models.CharField(
+        "estado", max_length=8, choices=Status.choices, default=Status.PENDING
+    )
+    approved_at = models.DateTimeField("aprobada el", null=True, blank=True)
+    approved_by = models.ForeignKey(
+        "accounts.User", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    notes = models.CharField("observaciones", max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = "jornada"
+        verbose_name_plural = "jornadas"
+        ordering = ["-date", "employee"]
+        indexes = [models.Index(fields=["tenant", "date", "status"])]
+        constraints = [
+            models.UniqueConstraint(fields=["employee", "date"], name="unique_workday_per_date"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.employee_id} {self.date}"
+
+    @property
+    def overtime_minutes(self) -> int:
+        return self.overtime_day_minutes + self.overtime_night_minutes + self.overtime_mixed_minutes

@@ -67,3 +67,20 @@ export function toLocalParts(value: string): { date: string; time: string } {
     time: `${parts.hour}:${parts.minute}`,
   }
 }
+
+/** Minutos como horas "8:30". */
+export function formatMinutes(value: number | null | undefined) {
+  if (!value) return '—'
+  return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`
+}
+
+/** Hora corta (HH:MM) en la zona de la empresa. */
+export function formatHour(value: string | null | undefined) {
+  if (!value) return '—'
+  return new Intl.DateTimeFormat('es-PA', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: TZ,
+  }).format(new Date(value))
+}

@@ -25,6 +25,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApproveResult,
+  ApproveWorkDaysRequest,
+  AttendanceTimeEntriesListParams,
+  BulkShiftAssignmentRequest,
+  BulkShiftResult,
+  CalculateResult,
+  CalculateWorkDaysRequest,
   ClockCode,
   ClockCodeRequest,
   CorrectPunchRequest,
@@ -39,18 +46,30 @@ import type {
   ManualPunchResult,
   PaginatedImportBatchList,
   PaginatedPunchList,
+  PaginatedShiftAssignmentList,
+  PaginatedTimeEntryList,
+  PaginatedWorkDayList,
   PatchedClockCodeRequest,
   PatchedDeviceRequest,
   PatchedImportTemplateRequest,
+  PatchedShiftRequest,
   Punch,
   RevertRequest,
+  Shift,
+  ShiftRequest,
   TimeclockBatchesListParams,
   TimeclockBatchesRowsRetrieveParams,
   TimeclockClockCodesListParams,
   TimeclockDevicesListParams,
   TimeclockPunchesListParams,
+  TimeclockShiftAssignmentsListParams,
+  TimeclockShiftsListParams,
   TimeclockTemplatesListParams,
-  VoidPunchRequest
+  TimeclockWorkdaysListParams,
+  TimeclockWorkdaysSummaryRetrieveParams,
+  VoidPunchRequest,
+  WorkDay,
+  WorkDaySummary
 } from '../model';
 
 import { customFetch } from '../../mutator';
@@ -95,6 +114,113 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getAttendanceTimeEntriesListUrl = (params?: AttendanceTimeEntriesListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/attendance/time-entries/?${stringifiedParams}` : `/api/v1/attendance/time-entries/`
+}
+
+/**
+ * Horas aprobadas (solo lectura): se generan al aprobar jornadas.
+ */
+export const attendanceTimeEntriesList = async (params?: AttendanceTimeEntriesListParams, options?: Parameters<typeof customFetch>[1]): Promise<PaginatedTimeEntryList> => {
+
+  return customFetch<PaginatedTimeEntryList>(getAttendanceTimeEntriesListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAttendanceTimeEntriesListQueryKey = (params?: AttendanceTimeEntriesListParams,) => {
+    return [
+    `/api/v1/attendance/time-entries/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAttendanceTimeEntriesListQueryOptions = <TData = Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError = ErrorType<unknown>>(params?: AttendanceTimeEntriesListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAttendanceTimeEntriesListQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof attendanceTimeEntriesList>>> = ({ signal }) => attendanceTimeEntriesList(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AttendanceTimeEntriesListQueryResult = NonNullable<Awaited<ReturnType<typeof attendanceTimeEntriesList>>>
+export type AttendanceTimeEntriesListQueryError = ErrorType<unknown>
+
+
+/** Horas aprobadas (solo lectura): se generan al aprobar jornadas. */
+export function useAttendanceTimeEntriesList<TData = Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError = ErrorType<unknown>>(
+ params: undefined |  AttendanceTimeEntriesListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof attendanceTimeEntriesList>>,
+          TError,
+          Awaited<ReturnType<typeof attendanceTimeEntriesList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Horas aprobadas (solo lectura): se generan al aprobar jornadas. */
+export function useAttendanceTimeEntriesList<TData = Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError = ErrorType<unknown>>(
+ params?: AttendanceTimeEntriesListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof attendanceTimeEntriesList>>,
+          TError,
+          Awaited<ReturnType<typeof attendanceTimeEntriesList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Horas aprobadas (solo lectura): se generan al aprobar jornadas. */
+export function useAttendanceTimeEntriesList<TData = Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError = ErrorType<unknown>>(
+ params?: AttendanceTimeEntriesListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Horas aprobadas (solo lectura): se generan al aprobar jornadas. */
+export function useAttendanceTimeEntriesList<TData = Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError = ErrorType<unknown>>(
+ params?: AttendanceTimeEntriesListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceTimeEntriesList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAttendanceTimeEntriesListQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
 
 export const getTimeclockBatchesListUrl = (params?: TimeclockBatchesListParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -2214,6 +2340,769 @@ export const useTimeclockPunchesManualCreate = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getTimeclockPunchesManualCreateMutationOptions(options), queryClient);
     }
+    export const getTimeclockShiftAssignmentsListUrl = (params?: TimeclockShiftAssignmentsListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/timeclock/shift-assignments/?${stringifiedParams}` : `/api/v1/timeclock/shift-assignments/`
+}
+
+/**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export const timeclockShiftAssignmentsList = async (params?: TimeclockShiftAssignmentsListParams, options?: Parameters<typeof customFetch>[1]): Promise<PaginatedShiftAssignmentList> => {
+
+  return customFetch<PaginatedShiftAssignmentList>(getTimeclockShiftAssignmentsListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftAssignmentsListQueryKey = (params?: TimeclockShiftAssignmentsListParams,) => {
+    return [
+    `/api/v1/timeclock/shift-assignments/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTimeclockShiftAssignmentsListQueryOptions = <TData = Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError = ErrorType<unknown>>(params?: TimeclockShiftAssignmentsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTimeclockShiftAssignmentsListQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>> = ({ signal }) => timeclockShiftAssignmentsList(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TimeclockShiftAssignmentsListQueryResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>>
+export type TimeclockShiftAssignmentsListQueryError = ErrorType<unknown>
+
+
+/**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export function useTimeclockShiftAssignmentsList<TData = Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError = ErrorType<unknown>>(
+ params: undefined |  TimeclockShiftAssignmentsListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export function useTimeclockShiftAssignmentsList<TData = Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockShiftAssignmentsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export function useTimeclockShiftAssignmentsList<TData = Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockShiftAssignmentsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export function useTimeclockShiftAssignmentsList<TData = Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockShiftAssignmentsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTimeclockShiftAssignmentsListQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getTimeclockShiftAssignmentsDestroyUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/timeclock/shift-assignments/${id}/`
+}
+
+/**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export const timeclockShiftAssignmentsDestroy = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getTimeclockShiftAssignmentsDestroyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftAssignmentsDestroyMutationKey = () => ['timeclockShiftAssignmentsDestroy'] as const;
+
+export const getTimeclockShiftAssignmentsDestroyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsDestroy>>, TError,TimeclockShiftAssignmentsDestroyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsDestroy>>, TError,TimeclockShiftAssignmentsDestroyMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockShiftAssignmentsDestroyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockShiftAssignmentsDestroy>>, TimeclockShiftAssignmentsDestroyMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  timeclockShiftAssignmentsDestroy(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockShiftAssignmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftAssignmentsDestroy>>>
+
+    export type TimeclockShiftAssignmentsDestroyMutationError = ErrorType<unknown>
+    export type TimeclockShiftAssignmentsDestroyMutationVariables = {id: string}
+
+    /**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export const useTimeclockShiftAssignmentsDestroy = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsDestroy>>, TError,TimeclockShiftAssignmentsDestroyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockShiftAssignmentsDestroy>>,
+        TError,
+        TimeclockShiftAssignmentsDestroyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockShiftAssignmentsDestroyMutationOptions(options), queryClient);
+    }
+    export const getTimeclockShiftAssignmentsBulkCreateUrl = () => {
+
+
+
+
+  return `/api/v1/timeclock/shift-assignments/bulk/`
+}
+
+/**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export const timeclockShiftAssignmentsBulkCreate = async (bulkShiftAssignmentRequest: BulkShiftAssignmentRequest, options?: Parameters<typeof customFetch>[1]): Promise<BulkShiftResult> => {
+
+  return customFetch<BulkShiftResult>(getTimeclockShiftAssignmentsBulkCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+    body: JSON.stringify(bulkShiftAssignmentRequest)
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftAssignmentsBulkCreateMutationKey = () => ['timeclockShiftAssignmentsBulkCreate'] as const;
+
+export const getTimeclockShiftAssignmentsBulkCreateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsBulkCreate>>, TError,TimeclockShiftAssignmentsBulkCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsBulkCreate>>, TError,TimeclockShiftAssignmentsBulkCreateMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockShiftAssignmentsBulkCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockShiftAssignmentsBulkCreate>>, TimeclockShiftAssignmentsBulkCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  timeclockShiftAssignmentsBulkCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockShiftAssignmentsBulkCreateMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftAssignmentsBulkCreate>>>
+    export type TimeclockShiftAssignmentsBulkCreateMutationBody = BodyType<BulkShiftAssignmentRequest>
+    export type TimeclockShiftAssignmentsBulkCreateMutationError = ErrorType<unknown>
+    export type TimeclockShiftAssignmentsBulkCreateMutationVariables = {data: BodyType<BulkShiftAssignmentRequest>}
+
+    /**
+ * Horario de cada empleado con vigencia. Para cambiarlo se asigna uno nuevo desde una
+ * fecha: el anterior se cierra el día previo.
+ */
+export const useTimeclockShiftAssignmentsBulkCreate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftAssignmentsBulkCreate>>, TError,TimeclockShiftAssignmentsBulkCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockShiftAssignmentsBulkCreate>>,
+        TError,
+        TimeclockShiftAssignmentsBulkCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockShiftAssignmentsBulkCreateMutationOptions(options), queryClient);
+    }
+    export const getTimeclockShiftsListUrl = (params?: TimeclockShiftsListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/timeclock/shifts/?${stringifiedParams}` : `/api/v1/timeclock/shifts/`
+}
+
+/**
+ * Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.
+ */
+export const timeclockShiftsList = async (params?: TimeclockShiftsListParams, options?: Parameters<typeof customFetch>[1]): Promise<Shift[]> => {
+
+  return customFetch<Shift[]>(getTimeclockShiftsListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftsListQueryKey = (params?: TimeclockShiftsListParams,) => {
+    return [
+    `/api/v1/timeclock/shifts/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTimeclockShiftsListQueryOptions = <TData = Awaited<ReturnType<typeof timeclockShiftsList>>, TError = ErrorType<unknown>>(params?: TimeclockShiftsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTimeclockShiftsListQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof timeclockShiftsList>>> = ({ signal }) => timeclockShiftsList(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TimeclockShiftsListQueryResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftsList>>>
+export type TimeclockShiftsListQueryError = ErrorType<unknown>
+
+
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsList<TData = Awaited<ReturnType<typeof timeclockShiftsList>>, TError = ErrorType<unknown>>(
+ params: undefined |  TimeclockShiftsListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockShiftsList>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockShiftsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsList<TData = Awaited<ReturnType<typeof timeclockShiftsList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockShiftsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockShiftsList>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockShiftsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsList<TData = Awaited<ReturnType<typeof timeclockShiftsList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockShiftsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsList<TData = Awaited<ReturnType<typeof timeclockShiftsList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockShiftsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTimeclockShiftsListQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getTimeclockShiftsCreateUrl = () => {
+
+
+
+
+  return `/api/v1/timeclock/shifts/`
+}
+
+/**
+ * Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.
+ */
+export const timeclockShiftsCreate = async (shiftRequest: ShiftRequest, options?: Parameters<typeof customFetch>[1]): Promise<Shift> => {
+
+  return customFetch<Shift>(getTimeclockShiftsCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+    body: JSON.stringify(shiftRequest)
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftsCreateMutationKey = () => ['timeclockShiftsCreate'] as const;
+
+export const getTimeclockShiftsCreateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsCreate>>, TError,TimeclockShiftsCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsCreate>>, TError,TimeclockShiftsCreateMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockShiftsCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockShiftsCreate>>, TimeclockShiftsCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  timeclockShiftsCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockShiftsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftsCreate>>>
+    export type TimeclockShiftsCreateMutationBody = BodyType<ShiftRequest>
+    export type TimeclockShiftsCreateMutationError = ErrorType<unknown>
+    export type TimeclockShiftsCreateMutationVariables = {data: BodyType<ShiftRequest>}
+
+    /** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export const useTimeclockShiftsCreate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsCreate>>, TError,TimeclockShiftsCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockShiftsCreate>>,
+        TError,
+        TimeclockShiftsCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockShiftsCreateMutationOptions(options), queryClient);
+    }
+    export const getTimeclockShiftsRetrieveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/timeclock/shifts/${id}/`
+}
+
+/**
+ * Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.
+ */
+export const timeclockShiftsRetrieve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Shift> => {
+
+  return customFetch<Shift>(getTimeclockShiftsRetrieveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftsRetrieveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/timeclock/shifts/${id}/`
+    ] as const;
+    }
+
+
+export const getTimeclockShiftsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTimeclockShiftsRetrieveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>> = ({ signal }) => timeclockShiftsRetrieve(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TimeclockShiftsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>>
+export type TimeclockShiftsRetrieveQueryError = ErrorType<unknown>
+
+
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsRetrieve<TData = Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockShiftsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockShiftsRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsRetrieve<TData = Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockShiftsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockShiftsRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsRetrieve<TData = Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export function useTimeclockShiftsRetrieve<TData = Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockShiftsRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTimeclockShiftsRetrieveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getTimeclockShiftsUpdateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/timeclock/shifts/${id}/`
+}
+
+/**
+ * Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.
+ */
+export const timeclockShiftsUpdate = async (id: string,
+    shiftRequest: ShiftRequest, options?: Parameters<typeof customFetch>[1]): Promise<Shift> => {
+
+  return customFetch<Shift>(getTimeclockShiftsUpdateUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+    body: JSON.stringify(shiftRequest)
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftsUpdateMutationKey = () => ['timeclockShiftsUpdate'] as const;
+
+export const getTimeclockShiftsUpdateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsUpdate>>, TError,TimeclockShiftsUpdateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsUpdate>>, TError,TimeclockShiftsUpdateMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockShiftsUpdateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockShiftsUpdate>>, TimeclockShiftsUpdateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  timeclockShiftsUpdate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockShiftsUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftsUpdate>>>
+    export type TimeclockShiftsUpdateMutationBody = BodyType<ShiftRequest>
+    export type TimeclockShiftsUpdateMutationError = ErrorType<unknown>
+    export type TimeclockShiftsUpdateMutationVariables = {id: string;data: BodyType<ShiftRequest>}
+
+    /** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export const useTimeclockShiftsUpdate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsUpdate>>, TError,TimeclockShiftsUpdateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockShiftsUpdate>>,
+        TError,
+        TimeclockShiftsUpdateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockShiftsUpdateMutationOptions(options), queryClient);
+    }
+    export const getTimeclockShiftsPartialUpdateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/timeclock/shifts/${id}/`
+}
+
+/**
+ * Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.
+ */
+export const timeclockShiftsPartialUpdate = async (id: string,
+    patchedShiftRequest?: PatchedShiftRequest, options?: Parameters<typeof customFetch>[1]): Promise<Shift> => {
+
+  return customFetch<Shift>(getTimeclockShiftsPartialUpdateUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+    body: JSON.stringify(patchedShiftRequest)
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftsPartialUpdateMutationKey = () => ['timeclockShiftsPartialUpdate'] as const;
+
+export const getTimeclockShiftsPartialUpdateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsPartialUpdate>>, TError,TimeclockShiftsPartialUpdateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsPartialUpdate>>, TError,TimeclockShiftsPartialUpdateMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockShiftsPartialUpdateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockShiftsPartialUpdate>>, TimeclockShiftsPartialUpdateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  timeclockShiftsPartialUpdate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockShiftsPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftsPartialUpdate>>>
+    export type TimeclockShiftsPartialUpdateMutationBody = BodyType<PatchedShiftRequest> | undefined
+    export type TimeclockShiftsPartialUpdateMutationError = ErrorType<unknown>
+    export type TimeclockShiftsPartialUpdateMutationVariables = {id: string;data?: BodyType<PatchedShiftRequest>}
+
+    /** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export const useTimeclockShiftsPartialUpdate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsPartialUpdate>>, TError,TimeclockShiftsPartialUpdateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockShiftsPartialUpdate>>,
+        TError,
+        TimeclockShiftsPartialUpdateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockShiftsPartialUpdateMutationOptions(options), queryClient);
+    }
+    export const getTimeclockShiftsDestroyUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/timeclock/shifts/${id}/`
+}
+
+/**
+ * Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import.
+ */
+export const timeclockShiftsDestroy = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getTimeclockShiftsDestroyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockShiftsDestroyMutationKey = () => ['timeclockShiftsDestroy'] as const;
+
+export const getTimeclockShiftsDestroyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsDestroy>>, TError,TimeclockShiftsDestroyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsDestroy>>, TError,TimeclockShiftsDestroyMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockShiftsDestroyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockShiftsDestroy>>, TimeclockShiftsDestroyMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  timeclockShiftsDestroy(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockShiftsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockShiftsDestroy>>>
+
+    export type TimeclockShiftsDestroyMutationError = ErrorType<unknown>
+    export type TimeclockShiftsDestroyMutationVariables = {id: string}
+
+    /** Configuración de marcaciones: lectura con timeclock.view, cambios con timeclock.import. */
+export const useTimeclockShiftsDestroy = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockShiftsDestroy>>, TError,TimeclockShiftsDestroyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockShiftsDestroy>>,
+        TError,
+        TimeclockShiftsDestroyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockShiftsDestroyMutationOptions(options), queryClient);
+    }
     export const getTimeclockTemplatesListUrl = (params?: TimeclockTemplatesListParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -2707,3 +3596,577 @@ export const useTimeclockTemplatesDestroy = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getTimeclockTemplatesDestroyMutationOptions(options), queryClient);
     }
+    export const getTimeclockWorkdaysListUrl = (params?: TimeclockWorkdaysListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/timeclock/workdays/?${stringifiedParams}` : `/api/v1/timeclock/workdays/`
+}
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export const timeclockWorkdaysList = async (params?: TimeclockWorkdaysListParams, options?: Parameters<typeof customFetch>[1]): Promise<PaginatedWorkDayList> => {
+
+  return customFetch<PaginatedWorkDayList>(getTimeclockWorkdaysListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockWorkdaysListQueryKey = (params?: TimeclockWorkdaysListParams,) => {
+    return [
+    `/api/v1/timeclock/workdays/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTimeclockWorkdaysListQueryOptions = <TData = Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError = ErrorType<unknown>>(params?: TimeclockWorkdaysListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTimeclockWorkdaysListQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof timeclockWorkdaysList>>> = ({ signal }) => timeclockWorkdaysList(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TimeclockWorkdaysListQueryResult = NonNullable<Awaited<ReturnType<typeof timeclockWorkdaysList>>>
+export type TimeclockWorkdaysListQueryError = ErrorType<unknown>
+
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysList<TData = Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError = ErrorType<unknown>>(
+ params: undefined |  TimeclockWorkdaysListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockWorkdaysList>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockWorkdaysList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysList<TData = Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockWorkdaysListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockWorkdaysList>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockWorkdaysList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysList<TData = Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockWorkdaysListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysList<TData = Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError = ErrorType<unknown>>(
+ params?: TimeclockWorkdaysListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTimeclockWorkdaysListQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getTimeclockWorkdaysRetrieveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/timeclock/workdays/${id}/`
+}
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export const timeclockWorkdaysRetrieve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<WorkDay> => {
+
+  return customFetch<WorkDay>(getTimeclockWorkdaysRetrieveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockWorkdaysRetrieveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/timeclock/workdays/${id}/`
+    ] as const;
+    }
+
+
+export const getTimeclockWorkdaysRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTimeclockWorkdaysRetrieveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>> = ({ signal }) => timeclockWorkdaysRetrieve(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TimeclockWorkdaysRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>>
+export type TimeclockWorkdaysRetrieveQueryError = ErrorType<unknown>
+
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTimeclockWorkdaysRetrieveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getTimeclockWorkdaysReopenCreateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/timeclock/workdays/${id}/reopen/`
+}
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export const timeclockWorkdaysReopenCreate = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<WorkDay> => {
+
+  return customFetch<WorkDay>(getTimeclockWorkdaysReopenCreateUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockWorkdaysReopenCreateMutationKey = () => ['timeclockWorkdaysReopenCreate'] as const;
+
+export const getTimeclockWorkdaysReopenCreateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysReopenCreate>>, TError,TimeclockWorkdaysReopenCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysReopenCreate>>, TError,TimeclockWorkdaysReopenCreateMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockWorkdaysReopenCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockWorkdaysReopenCreate>>, TimeclockWorkdaysReopenCreateMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  timeclockWorkdaysReopenCreate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockWorkdaysReopenCreateMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockWorkdaysReopenCreate>>>
+
+    export type TimeclockWorkdaysReopenCreateMutationError = ErrorType<unknown>
+    export type TimeclockWorkdaysReopenCreateMutationVariables = {id: string}
+
+    /**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export const useTimeclockWorkdaysReopenCreate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysReopenCreate>>, TError,TimeclockWorkdaysReopenCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockWorkdaysReopenCreate>>,
+        TError,
+        TimeclockWorkdaysReopenCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockWorkdaysReopenCreateMutationOptions(options), queryClient);
+    }
+    export const getTimeclockWorkdaysApproveCreateUrl = () => {
+
+
+
+
+  return `/api/v1/timeclock/workdays/approve/`
+}
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export const timeclockWorkdaysApproveCreate = async (approveWorkDaysRequest: ApproveWorkDaysRequest, options?: Parameters<typeof customFetch>[1]): Promise<ApproveResult> => {
+
+  return customFetch<ApproveResult>(getTimeclockWorkdaysApproveCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+    body: JSON.stringify(approveWorkDaysRequest)
+  }
+);}
+
+
+
+
+
+export const getTimeclockWorkdaysApproveCreateMutationKey = () => ['timeclockWorkdaysApproveCreate'] as const;
+
+export const getTimeclockWorkdaysApproveCreateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysApproveCreate>>, TError,TimeclockWorkdaysApproveCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysApproveCreate>>, TError,TimeclockWorkdaysApproveCreateMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockWorkdaysApproveCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockWorkdaysApproveCreate>>, TimeclockWorkdaysApproveCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  timeclockWorkdaysApproveCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockWorkdaysApproveCreateMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockWorkdaysApproveCreate>>>
+    export type TimeclockWorkdaysApproveCreateMutationBody = BodyType<ApproveWorkDaysRequest>
+    export type TimeclockWorkdaysApproveCreateMutationError = ErrorType<unknown>
+    export type TimeclockWorkdaysApproveCreateMutationVariables = {data: BodyType<ApproveWorkDaysRequest>}
+
+    /**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export const useTimeclockWorkdaysApproveCreate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysApproveCreate>>, TError,TimeclockWorkdaysApproveCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockWorkdaysApproveCreate>>,
+        TError,
+        TimeclockWorkdaysApproveCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockWorkdaysApproveCreateMutationOptions(options), queryClient);
+    }
+    export const getTimeclockWorkdaysCalculateCreateUrl = () => {
+
+
+
+
+  return `/api/v1/timeclock/workdays/calculate/`
+}
+
+/**
+ * Recalcula las jornadas del período (las aprobadas no cambian).
+ */
+export const timeclockWorkdaysCalculateCreate = async (calculateWorkDaysRequest: CalculateWorkDaysRequest, options?: Parameters<typeof customFetch>[1]): Promise<CalculateResult> => {
+
+  return customFetch<CalculateResult>(getTimeclockWorkdaysCalculateCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+    body: JSON.stringify(calculateWorkDaysRequest)
+  }
+);}
+
+
+
+
+
+export const getTimeclockWorkdaysCalculateCreateMutationKey = () => ['timeclockWorkdaysCalculateCreate'] as const;
+
+export const getTimeclockWorkdaysCalculateCreateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysCalculateCreate>>, TError,TimeclockWorkdaysCalculateCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysCalculateCreate>>, TError,TimeclockWorkdaysCalculateCreateMutationVariables, TContext> => {
+
+const mutationKey = getTimeclockWorkdaysCalculateCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof timeclockWorkdaysCalculateCreate>>, TimeclockWorkdaysCalculateCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  timeclockWorkdaysCalculateCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TimeclockWorkdaysCalculateCreateMutationResult = NonNullable<Awaited<ReturnType<typeof timeclockWorkdaysCalculateCreate>>>
+    export type TimeclockWorkdaysCalculateCreateMutationBody = BodyType<CalculateWorkDaysRequest>
+    export type TimeclockWorkdaysCalculateCreateMutationError = ErrorType<unknown>
+    export type TimeclockWorkdaysCalculateCreateMutationVariables = {data: BodyType<CalculateWorkDaysRequest>}
+
+    /** Recalcula las jornadas del período (las aprobadas no cambian). */
+export const useTimeclockWorkdaysCalculateCreate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof timeclockWorkdaysCalculateCreate>>, TError,TimeclockWorkdaysCalculateCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof timeclockWorkdaysCalculateCreate>>,
+        TError,
+        TimeclockWorkdaysCalculateCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTimeclockWorkdaysCalculateCreateMutationOptions(options), queryClient);
+    }
+    export const getTimeclockWorkdaysSummaryRetrieveUrl = (params?: TimeclockWorkdaysSummaryRetrieveParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/timeclock/workdays/summary/?${stringifiedParams}` : `/api/v1/timeclock/workdays/summary/`
+}
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export const timeclockWorkdaysSummaryRetrieve = async (params?: TimeclockWorkdaysSummaryRetrieveParams, options?: Parameters<typeof customFetch>[1]): Promise<WorkDaySummary> => {
+
+  return customFetch<WorkDaySummary>(getTimeclockWorkdaysSummaryRetrieveUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTimeclockWorkdaysSummaryRetrieveQueryKey = (params?: TimeclockWorkdaysSummaryRetrieveParams,) => {
+    return [
+    `/api/v1/timeclock/workdays/summary/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTimeclockWorkdaysSummaryRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError = ErrorType<unknown>>(params?: TimeclockWorkdaysSummaryRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTimeclockWorkdaysSummaryRetrieveQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>> = ({ signal }) => timeclockWorkdaysSummaryRetrieve(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TimeclockWorkdaysSummaryRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>>
+export type TimeclockWorkdaysSummaryRetrieveQueryError = ErrorType<unknown>
+
+
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysSummaryRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError = ErrorType<unknown>>(
+ params: undefined |  TimeclockWorkdaysSummaryRetrieveParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysSummaryRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError = ErrorType<unknown>>(
+ params?: TimeclockWorkdaysSummaryRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysSummaryRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError = ErrorType<unknown>>(
+ params?: TimeclockWorkdaysSummaryRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Jornadas calculadas a partir de las marcaciones; el jefe de proyecto las aprueba y se
+ * generan las horas que usará la planilla.
+ */
+export function useTimeclockWorkdaysSummaryRetrieve<TData = Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError = ErrorType<unknown>>(
+ params?: TimeclockWorkdaysSummaryRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof timeclockWorkdaysSummaryRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTimeclockWorkdaysSummaryRetrieveQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
