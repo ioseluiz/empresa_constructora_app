@@ -58,4 +58,16 @@ PARAMETERS: list[dict] = [
         "name": "Provisión prima de antigüedad (1 semana por año)",
         "value": "0.019231",
     },
+    {
+        "key": "vacation_pay_higher_of_current",
+        "name": "Vacaciones: pagar el salario actual si supera el promedio de 11 meses (1 = sí)",
+        "value": "1",
+        "legal_basis": "Código de Trabajo, art. 56",
+    },
+    {"key": "vacation_average_months", "name": "Vacaciones: meses del promedio", "value": "11"},
+    {
+        "key": "decimo_divisor",
+        "name": "Décimo: divisor de lo devengado en el cuatrimestre",
+        "value": "12",
+    },
 ]

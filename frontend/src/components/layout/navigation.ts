@@ -38,7 +38,7 @@ export const navigation: NavSection[] = [
       { label: 'Empleados', to: '/empleados', icon: Users, permission: 'hr.employee.view' },
       { label: 'Marcaciones', to: '/marcaciones', icon: Clock, permission: 'timeclock.view' },
       { label: 'Planilla', to: '/planilla', icon: Wallet, permission: 'payroll.view' },
-      { label: 'Vacaciones', to: '/vacaciones', icon: CalendarDays, sprint: 11 },
+      { label: 'Vacaciones', to: '/vacaciones', icon: CalendarDays, permission: 'leave.view' },
       { label: 'Reportes', to: '/reportes', icon: FileText, permission: 'payroll.reports' },
     ],
   },

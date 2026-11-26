@@ -196,6 +196,8 @@ class PayrollRun(TenantAwareModel):
 
     class RunType(models.TextChoices):
         REGULAR = "regular", "Regular"
+        DECIMO = "decimo", "Décimo tercer mes"
+        VACATION = "vacation", "Vacaciones"
 
     class Scope(models.TextChoices):
         PROJECT = "project", "Proyecto"
@@ -218,7 +220,13 @@ class PayrollRun(TenantAwareModel):
     run_type = models.CharField(
         "tipo", max_length=12, choices=RunType.choices, default=RunType.REGULAR
     )
-    frequency = models.CharField("frecuencia", max_length=10, choices=Frequency.choices)
+    frequency = models.CharField(
+        "frecuencia",
+        max_length=10,
+        choices=Frequency.choices,
+        blank=True,
+        help_text="Solo planillas regulares: el décimo y las vacaciones incluyen a todos.",
+    )
     scope = models.CharField("alcance", max_length=10, choices=Scope.choices)
     project = models.ForeignKey(
         "projects.Project",
@@ -301,6 +309,9 @@ class PayrollLine(TenantAwareModel):
     warnings = models.JSONField("advertencias", default=list, blank=True)
     explanation = models.JSONField("explicación", default=list, blank=True)
     error = models.CharField("error", max_length=255, blank=True)
+    vacation_payments = models.JSONField(
+        "vacaciones pagadas", default=dict, blank=True, help_text="Solicitud → monto."
+    )
     time_entry_ids = ArrayField(
         models.UUIDField(), verbose_name="horas incluidas", default=list, blank=True
     )

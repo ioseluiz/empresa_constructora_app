@@ -2802,6 +2802,548 @@
                 }
             }
         },
+        "/api/v1/leave/adjustments/": {
+            "get": {
+                "operationId": "leave_adjustments_list",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VacationAdjustment"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "leave_adjustments_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "vacaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VacationAdjustmentRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VacationAdjustmentRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VacationAdjustmentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VacationAdjustment"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/leave/balances/": {
+            "get": {
+                "operationId": "leave_balances_list",
+                "description": "Saldo de vacaciones de los empleados activos.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedBalanceList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/leave/vacations/": {
+            "get": {
+                "operationId": "leave_vacations_list",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "payment_mode",
+                        "schema": {
+                            "type": "string",
+                            "title": "Forma de pago",
+                            "enum": [
+                                "payroll",
+                                "separate"
+                            ]
+                        },
+                        "description": "* `payroll` - En la planilla regular\n* `separate` - En planilla de vacaciones"
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "title": "Estado",
+                            "enum": [
+                                "approved",
+                                "cancelled",
+                                "rejected",
+                                "requested"
+                            ]
+                        },
+                        "description": "* `requested` - Solicitada\n* `approved` - Aprobada\n* `rejected` - Rechazada\n* `cancelled` - Cancelada"
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedVacationRequestList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "leave_vacations_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "tags": [
+                    "vacaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VacationRequestRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VacationRequestRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VacationRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VacationRequest"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/leave/vacations/{id}/": {
+            "get": {
+                "operationId": "leave_vacations_retrieve",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este vacaciones.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VacationRequest"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "leave_vacations_partial_update",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este vacaciones.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedVacationRequestRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedVacationRequestRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedVacationRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VacationRequest"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/leave/vacations/{id}/approve/": {
+            "post": {
+                "operationId": "leave_vacations_approve_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este vacaciones.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VacationRequest"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/leave/vacations/{id}/cancel/": {
+            "post": {
+                "operationId": "leave_vacations_cancel_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este vacaciones.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VacationRequest"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/leave/vacations/{id}/reject/": {
+            "post": {
+                "operationId": "leave_vacations_reject_create",
+                "description": "Mezclar en toda vista de negocio: usuario autenticado + miembro de la empresa activa +\npermiso requerido.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este vacaciones.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "vacaciones"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VacationRequest"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/org/cba-categories/": {
             "get": {
                 "operationId": "org_cba_categories_list",
@@ -5165,7 +5707,7 @@
                                 "weekly"
                             ]
                         },
-                        "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
+                        "description": "Solo planillas regulares: el décimo y las vacaciones incluyen a todos.\n\n* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
                     },
                     {
                         "name": "ordering",
@@ -5545,7 +6087,7 @@
                                 "weekly"
                             ]
                         },
-                        "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
+                        "description": "Solo planillas regulares: el décimo y las vacaciones incluyen a todos.\n\n* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
                     },
                     {
                         "in": "path",
@@ -5696,7 +6238,7 @@
                                 "weekly"
                             ]
                         },
-                        "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
+                        "description": "Solo planillas regulares: el décimo y las vacaciones incluyen a todos.\n\n* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
                     },
                     {
                         "in": "path",
@@ -9051,6 +9593,61 @@
                     "object_type"
                 ]
             },
+            "Balance": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "employee_code": {
+                        "type": "string"
+                    },
+                    "employee_name": {
+                        "type": "string"
+                    },
+                    "hire_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "earned": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,6}(?:\\.\\d{0,2})?$"
+                    },
+                    "taken": {
+                        "type": "integer"
+                    },
+                    "scheduled": {
+                        "type": "integer"
+                    },
+                    "adjustments": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,6}(?:\\.\\d{0,2})?$"
+                    },
+                    "available": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,6}(?:\\.\\d{0,2})?$"
+                    },
+                    "pending_requests": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "adjustments",
+                    "available",
+                    "earned",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "hire_date",
+                    "pending_requests",
+                    "scheduled",
+                    "taken"
+                ]
+            },
             "BankEnum": {
                 "enum": [
                     "banco_general",
@@ -9635,6 +10232,15 @@
                 ],
                 "type": "string",
                 "description": "* `regular` - Laborable\n* `rest` - Descanso\n* `holiday` - Feriado"
+            },
+            "DecisionRequest": {
+                "type": "object",
+                "properties": {
+                    "reason": {
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                }
             },
             "Device": {
                 "type": "object",
@@ -11999,6 +12605,37 @@
                     }
                 }
             },
+            "PaginatedBalanceList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Balance"
+                        }
+                    }
+                }
+            },
             "PaginatedEmployeeList": {
                 "type": "object",
                 "required": [
@@ -12305,6 +12942,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/TimeEntry"
+                        }
+                    }
+                }
+            },
+            "PaginatedVacationRequestList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VacationRequest"
                         }
                     }
                 }
@@ -13487,6 +14155,40 @@
                     }
                 }
             },
+            "PatchedVacationRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "days": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Días"
+                    },
+                    "payment_mode": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PaymentModeEnum"
+                            }
+                        ],
+                        "title": "Forma de pago"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones",
+                        "maxLength": 255
+                    }
+                }
+            },
             "PayBasisEnum": {
                 "enum": [
                     "monthly",
@@ -13560,6 +14262,14 @@
                 ],
                 "type": "string",
                 "description": "* `ach` - Transferencia ACH\n* `check` - Cheque\n* `cash` - Efectivo"
+            },
+            "PaymentModeEnum": {
+                "enum": [
+                    "payroll",
+                    "separate"
+                ],
+                "type": "string",
+                "description": "* `payroll` - En la planilla regular\n* `separate` - En planilla de vacaciones"
             },
             "PayrollConcept": {
                 "type": "object",
@@ -13915,13 +14625,21 @@
                         ],
                         "title": "Tipo"
                     },
+                    "run_type_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
                     "frequency": {
-                        "allOf": [
+                        "title": "Frecuencia",
+                        "description": "Solo planillas regulares: el décimo y las vacaciones incluyen a todos.\n\n* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual",
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/PayFrequencyEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
                             }
-                        ],
-                        "title": "Frecuencia"
+                        ]
                     },
                     "frequency_display": {
                         "type": "string",
@@ -14084,7 +14802,6 @@
                     "employee_count",
                     "employer_contributions",
                     "error_count",
-                    "frequency",
                     "frequency_display",
                     "gross",
                     "id",
@@ -14098,6 +14815,7 @@
                     "period_start",
                     "project_code",
                     "provisions",
+                    "run_type_display",
                     "scope",
                     "scope_display",
                     "status",
@@ -14117,12 +14835,16 @@
                         "title": "Tipo"
                     },
                     "frequency": {
-                        "allOf": [
+                        "title": "Frecuencia",
+                        "description": "Solo planillas regulares: el décimo y las vacaciones incluyen a todos.\n\n* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual",
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/PayFrequencyEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
                             }
-                        ],
-                        "title": "Frecuencia"
+                        ]
                     },
                     "scope": {
                         "allOf": [
@@ -14155,7 +14877,6 @@
                     }
                 },
                 "required": [
-                    "frequency",
                     "pay_date",
                     "period_end",
                     "period_start",
@@ -15431,10 +16152,12 @@
             },
             "RunTypeEnum": {
                 "enum": [
-                    "regular"
+                    "regular",
+                    "decimo",
+                    "vacation"
                 ],
                 "type": "string",
-                "description": "* `regular` - Regular"
+                "description": "* `regular` - Regular\n* `decimo` - Décimo tercer mes\n* `vacation` - Vacaciones"
             },
             "SalaryRecord": {
                 "type": "object",
@@ -16006,6 +16729,265 @@
                     "memberships",
                     "mfa_enabled"
                 ]
+            },
+            "VacationAdjustment": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fecha"
+                    },
+                    "days": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,4}(?:\\.\\d{0,2})?$",
+                        "title": "Días"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "title": "Motivo",
+                        "maxLength": 255
+                    },
+                    "created_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "created_by_email",
+                    "date",
+                    "days",
+                    "employee",
+                    "employee_name",
+                    "id",
+                    "reason"
+                ]
+            },
+            "VacationAdjustmentRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fecha"
+                    },
+                    "days": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,4}(?:\\.\\d{0,2})?$",
+                        "title": "Días"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Motivo",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "date",
+                    "days",
+                    "employee",
+                    "reason"
+                ]
+            },
+            "VacationRequest": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "title": "Hasta"
+                    },
+                    "days": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Días"
+                    },
+                    "payment_mode": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PaymentModeEnum"
+                            }
+                        ],
+                        "title": "Forma de pago"
+                    },
+                    "payment_mode_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/VacationStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Estado"
+                    },
+                    "status_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones",
+                        "maxLength": 255
+                    },
+                    "decided_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Decidida"
+                    },
+                    "decided_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "reject_reason": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Motivo del rechazo"
+                    },
+                    "is_paid": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "paid_amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Monto pagado"
+                    },
+                    "paid_run_number": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "days",
+                    "decided_at",
+                    "decided_by_email",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "end_date",
+                    "id",
+                    "is_paid",
+                    "paid_amount",
+                    "paid_run_number",
+                    "payment_mode_display",
+                    "reject_reason",
+                    "start_date",
+                    "status",
+                    "status_display"
+                ]
+            },
+            "VacationRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Empleado"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Desde"
+                    },
+                    "days": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0,
+                        "title": "Días"
+                    },
+                    "payment_mode": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PaymentModeEnum"
+                            }
+                        ],
+                        "title": "Forma de pago"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Observaciones",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "days",
+                    "employee",
+                    "start_date"
+                ]
+            },
+            "VacationStatusEnum": {
+                "enum": [
+                    "requested",
+                    "approved",
+                    "rejected",
+                    "cancelled"
+                ],
+                "type": "string",
+                "description": "* `requested` - Solicitada\n* `approved` - Aprobada\n* `rejected` - Rechazada\n* `cancelled` - Cancelada"
             },
             "VoidPunchRequest": {
                 "type": "object",

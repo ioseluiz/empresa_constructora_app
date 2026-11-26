@@ -52,9 +52,12 @@ CONCEPTS: list[tuple[str, str, str, bool, bool, bool, int, bool]] = [
         False,
     ),
     ("TIEMPO_NO_LAB", "Tiempo no laborado", "earning", True, True, True, 30, False),
+    ("VACACIONES", "Vacaciones", "earning", True, True, True, 40, False),
+    ("DECIMO", "Décimo tercer mes", "earning", False, False, True, 50, False),
     ("CSS", "Seguro Social", "deduction", False, False, False, 10, False),
     ("SE", "Seguro Educativo", "deduction", False, False, False, 11, False),
     ("ISR", "Impuesto sobre la renta", "deduction", False, False, False, 12, False),
+    ("CSS_DECIMO", "Seguro Social sobre décimo", "deduction", False, False, False, 13, False),
     ("PENSION_ALIM", "Pensión alimenticia", "deduction", False, False, False, 20, True),
     ("EMBARGO", "Embargo judicial", "deduction", False, False, False, 21, True),
     ("CUOTA_SINDICAL", "Cuota sindical", "deduction", False, False, False, 30, False),
@@ -63,6 +66,16 @@ CONCEPTS: list[tuple[str, str, str, bool, bool, bool, int, bool]] = [
     ("CSS_PATRONAL", "Seguro Social patronal", "employer", False, False, False, 10, False),
     ("SE_PATRONAL", "Seguro Educativo patronal", "employer", False, False, False, 11, False),
     ("RIESGO_PROF", "Riesgos profesionales", "employer", False, False, False, 12, False),
+    (
+        "CSS_DECIMO_PATRONAL",
+        "Seguro Social patronal sobre décimo",
+        "employer",
+        False,
+        False,
+        False,
+        13,
+        False,
+    ),
     ("PROV_DECIMO", "Provisión décimo tercer mes", "provision", False, False, False, 10, False),
     ("PROV_VACACIONES", "Provisión de vacaciones", "provision", False, False, False, 11, False),
     ("PROV_PRIMA", "Provisión prima de antigüedad", "provision", False, False, False, 12, False),
@@ -156,6 +169,18 @@ class PanamaRules:
                     rate=rate.quantize(Decimal("0.0001")),
                     cost_center_id=e.cost_center_id,
                     detail=f"tarifa {e.rate} × {factor.normalize()}",
+                )
+            )
+
+        for v in inp.vacations:
+            lines.append(
+                earning(
+                    "VACACIONES",
+                    v.amount,
+                    quantity=Decimal(v.days),
+                    rate=v.daily_rate,
+                    cost_center_id=inp.default_cost_center_id,
+                    detail=v.detail,
                 )
             )
 
@@ -259,5 +284,74 @@ class PanamaRules:
             result.warnings.append(
                 "La empresa no tiene configurada la tasa de riesgos profesionales."
             )
+        result.parameters = p.used()
+        return result
+
+    # ------------------------------------------------------------------ décimo tercer mes
+    def calculate_decimo(
+        self, earnings_by_cost_center: dict[Any, Decimal], default_cost_center: Any, p: Parameters
+    ) -> PayResult:
+        """Partida del décimo: 1/12 de lo devengado en el cuatrimestre. CSS especial (empleado y
+        patrono), sin Seguro Educativo. ISR: la partida equivale a 1/3 del décimo anual (≈ un
+        salario mensual): se retiene impuesto(partida × 3 × 13) / 13 / 3. ⚠️ Validar."""
+        result = PayResult()
+        base = sum(earnings_by_cost_center.values(), ZERO)
+        if base <= 0:
+            result.warnings.append("Sin salario devengado en el cuatrimestre.")
+            result.parameters = p.used()
+            return result
+        divisor = p.rate("decimo_divisor")
+        decimo = round_money(base / divisor)
+        shares = {
+            cc or default_cost_center: amount / base
+            for cc, amount in earnings_by_cost_center.items()
+        }
+        line = Line(
+            "DECIMO",
+            NAMES["DECIMO"],
+            "earning",
+            decimo,
+            taxable_isr=True,
+            detail=f"devengado {round_money(base)} / {divisor.normalize()}",
+        )
+        result.lines.extend(allocate(line, shares))
+        css_rate = p.rate("css_decimo_employee_rate")
+        result.lines.append(
+            Line(
+                "CSS_DECIMO",
+                NAMES["CSS_DECIMO"],
+                "deduction",
+                round_money(decimo * css_rate),
+                rate=css_rate,
+                detail=f"base {decimo}",
+            )
+        )
+        months = p.rate("isr_projection_months")
+        tax = isr_annual(decimo * 3 * months, p.table("isr_brackets"))
+        isr = round_money(tax / months / 3)
+        if isr > 0:
+            result.lines.append(
+                Line(
+                    "ISR",
+                    NAMES["ISR"],
+                    "deduction",
+                    isr,
+                    detail=f"proyección anual {round_money(decimo * 3 * months)}",
+                )
+            )
+        employer_rate = p.rate("css_decimo_employer_rate")
+        employer = Line(
+            "CSS_DECIMO_PATRONAL",
+            NAMES["CSS_DECIMO_PATRONAL"],
+            "employer",
+            round_money(decimo * employer_rate),
+            rate=employer_rate,
+            detail=f"base {decimo}",
+        )
+        result.lines.extend(allocate(employer, shares))
+        result.explanation.append(
+            f"Devengado del cuatrimestre {round_money(base)}: "
+            f"décimo = {round_money(base)} / {divisor.normalize()}."
+        )
         result.parameters = p.used()
         return result

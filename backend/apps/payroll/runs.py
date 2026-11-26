@@ -14,7 +14,7 @@ from apps.core.tenancy import require_current_tenant
 from apps.hr.models import Employee, EmploymentContract
 from apps.organization.models import CostCenter
 
-from .calculator import PayrollInputError, calculate
+from .calculator import PayrollInputError, calculate, calculate_decimo
 from .engine import ZERO
 from .models import PayrollConcept, PayrollLine, PayrollLineItem, PayrollRun, RecurringDeduction
 from .params import MissingParameter
@@ -31,6 +31,15 @@ class RunError(Exception):
     pass
 
 
+def decimo_periods(year: int) -> list[tuple[date, date, date]]:
+    """(inicio, fin, fecha de pago) de las tres partidas del décimo del año."""
+    return [
+        (date(year - 1, 12, 16), date(year, 4, 15), date(year, 4, 15)),
+        (date(year, 4, 16), date(year, 8, 15), date(year, 8, 15)),
+        (date(year, 8, 16), date(year, 12, 15), date(year, 12, 15)),
+    ]
+
+
 def next_number() -> int:
     return (PayrollRun.objects.aggregate(m=Max("number"))["m"] or 0) + 1
 
@@ -45,10 +54,12 @@ def create_run(**data: Any) -> PayrollRun:
 def contracts_in_scope(run: PayrollRun) -> QuerySet[EmploymentContract]:
     qs = (
         EmploymentContract.objects.exclude(status=EmploymentContract.Status.CANCELLED)
-        .filter(pay_frequency=run.frequency, start_date__lte=run.period_end)
+        .filter(start_date__lte=run.period_end)
         .filter(Q(end_date__isnull=True) | Q(end_date__gte=run.period_start))
         .select_related("employee", "cost_center")
     )
+    if run.run_type == PayrollRun.RunType.REGULAR:
+        qs = qs.filter(pay_frequency=run.frequency)
     if run.scope == PayrollRun.Scope.PROJECT and run.project is not None:
         qs = qs.filter(Q(project=run.project) | Q(cost_center=run.project.cost_center))
     elif run.scope == PayrollRun.Scope.OFFICE:
@@ -62,6 +73,18 @@ def employees_for(run: PayrollRun) -> tuple[list[Employee], list[str]]:
     employees: dict[Any, Employee] = {}
     for contract in contracts_in_scope(run).order_by("start_date"):
         employees[contract.employee_id] = contract.employee
+    if run.run_type == PayrollRun.RunType.VACATION:
+        from apps.leave.models import VacationRequest
+
+        with_vacations = set(
+            VacationRequest.objects.filter(
+                status=VacationRequest.Status.APPROVED,
+                payment_mode=VacationRequest.PaymentMode.SEPARATE,
+                paid_line__isnull=True,
+                start_date__lte=run.period_end,
+            ).values_list("employee_id", flat=True)
+        )
+        employees = {k: v for k, v in employees.items() if k in with_vacations}
     taken = dict(
         PayrollLine.objects.filter(
             run__status__in=ACTIVE,
@@ -89,12 +112,20 @@ def calculate_run(run: PayrollRun, user: Any) -> PayrollRun:
     run.lines.all().delete()
     concepts = {c.code: c for c in PayrollConcept.objects.all()}
     employees, skipped = employees_for(run)
+    no_earnings: list[str] = []
     parameters: dict[str, str] = {}
     totals = dict.fromkeys(("gross", "deductions", "net", "employer", "provision"), ZERO)
     for employee in employees:
         line = PayrollLine(tenant=tenant, run=run, employee=employee)
         try:
-            result = calculate(employee, run.period_start, run.period_end, run.pay_date)
+            if run.run_type == PayrollRun.RunType.DECIMO:
+                result = calculate_decimo(employee, run.period_start, run.period_end, run.pay_date)
+                if result.gross <= 0:
+                    no_earnings.append(employee.full_name)
+                    continue
+            else:
+                mode = "vacation" if run.run_type == PayrollRun.RunType.VACATION else "regular"
+                result = calculate(employee, run.period_start, run.period_end, run.pay_date, mode)
         except (PayrollInputError, MissingParameter, LookupError) as exc:
             line.error = str(exc)[:255]
             line.save()
@@ -106,6 +137,7 @@ def calculate_run(run: PayrollRun, user: Any) -> PayrollRun:
         line.provisions = result.total("provision")
         line.warnings, line.explanation = result.warnings, result.explanation
         line.time_entry_ids = result.time_entry_ids
+        line.vacation_payments = result.vacation_payments
         line.save()
         PayrollLineItem.objects.bulk_create(
             [
@@ -132,7 +164,9 @@ def calculate_run(run: PayrollRun, user: Any) -> PayrollRun:
         totals["employer"] += result.total("employer")
         totals["provision"] += result.total("provision")
 
-    run.employee_count = len(employees)
+    if no_earnings:
+        skipped.append(f"{len(no_earnings)} sin salario devengado en el período")
+    run.employee_count = len(employees) - len(no_earnings)
     run.gross, run.deductions, run.net = totals["gross"], totals["deductions"], totals["net"]
     run.employer_contributions, run.provisions = totals["employer"], totals["provision"]
     run.parameters = parameters
@@ -162,6 +196,18 @@ def approve_run(run: PayrollRun, user: Any) -> PayrollRun:
             "recalcula esta planilla."
         )
     TimeEntry.objects.filter(pk__in=entry_ids).update(locked=True)
+    # Vacaciones pagadas en esta planilla.
+    from apps.leave.models import VacationRequest
+
+    for line in lines:
+        for request_id, amount in (line.vacation_payments or {}).items():
+            updated = VacationRequest.objects.filter(pk=request_id, paid_line__isnull=True).update(
+                paid_line=line, paid_amount=Decimal(amount)
+            )
+            if not updated:
+                raise RunError(
+                    "Unas vacaciones ya se pagaron en otra planilla: recalcula esta planilla."
+                )
     # Abonos a préstamos y demás descuentos con saldo.
     for item in PayrollLineItem.objects.filter(line__run=run, deduction__isnull=False):
         RecurringDeduction.objects.filter(pk=item.deduction_id).update(

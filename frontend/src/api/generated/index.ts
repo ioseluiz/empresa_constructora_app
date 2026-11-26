@@ -9,3 +9,4 @@ export * from './organizacion/organizacion';
 export * from './personal/personal';
 export * from './planilla/planilla';
 export * from './proyectos/proyectos';
+export * from './vacaciones/vacaciones';

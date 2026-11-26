@@ -173,6 +173,19 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
 - Informe mensual de cuotas CSS / Seguro Educativo en Excel (base para el SIPE; validar el
   formato de carga vigente).
 
+## Vacaciones y décimo (`apps/leave`, `payroll/vacations.py`)
+
+- Saldo de vacaciones calculado (no guardado): 1 día por cada 11 días de relación laboral, más
+  ajustes (`VacationAdjustment`, p. ej. el saldo inicial), menos las aprobadas.
+- Solicitud → aprobación (verifica el saldo) o rechazo con motivo. Las aprobadas no generan
+  ausencias en las jornadas y a los asalariados no se les paga esos días como salario.
+- Pago = días × salario diario: promedio de lo devengado en 11 meses o salario actual si es
+  mayor (parámetro `vacation_pay_higher_of_current`). Se paga en la planilla regular o en una
+  planilla de tipo `vacation`; al aprobar queda registrado en la solicitud.
+- Planilla de tipo `decimo`: una por partida (16/12-15/04, 16/04-15/08, 16/08-15/12); 1/12 de
+  lo devengado en planillas aprobadas del cuatrimestre, CSS especial y sin Seguro Educativo.
+  Reglas documentadas en `payroll_pa/rules.py` (validar con contador).
+
 ## Cliente de la API (orval)
 
 El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:

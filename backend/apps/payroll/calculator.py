@@ -9,6 +9,7 @@ from django.db.models import Q
 
 from apps.attendance.models import TimeEntry
 from apps.hr.models import Employee, EmploymentContract, SalaryRecord
+from apps.leave.services import vacation_days_between
 from apps.organization.models import CBAWageRate
 from apps.timeclock.models import WorkDay
 
@@ -17,6 +18,7 @@ from .models import PayrollSettings, RecurringDeduction
 from .params import Parameters
 from .rules import rules_for
 from .services import settings_for_tenant
+from .vacations import vacation_pay
 
 FREQUENCY_FACTOR = {
     "weekly": Decimal(12) / Decimal(52),
@@ -73,7 +75,40 @@ class RateBook:
         return record.amount, "salario del contrato"
 
 
-def build_input(employee: Employee, start: date, end: date) -> PayInput:
+def _add_vacations(
+    inp: PayInput,
+    employee: Employee,
+    contract: EmploymentContract,
+    end: date,
+    mode: str,
+    params: Parameters,
+) -> None:
+    from apps.leave.models import VacationRequest
+
+    payment_mode = (
+        VacationRequest.PaymentMode.SEPARATE
+        if mode == "vacation"
+        else VacationRequest.PaymentMode.PAYROLL
+    )
+    for request in VacationRequest.objects.filter(
+        employee=employee,
+        status=VacationRequest.Status.APPROVED,
+        payment_mode=payment_mode,
+        paid_line__isnull=True,
+        start_date__lte=end,
+    ).order_by("start_date"):
+        inp.vacations.append(vacation_pay(employee, contract, request, params))
+
+
+def build_input(
+    employee: Employee,
+    start: date,
+    end: date,
+    mode: str = "regular",
+    params: Parameters | None = None,
+) -> PayInput:
+    """`mode`: "regular" (planilla regular, incluye vacaciones a pagar en ella) o "vacation"
+    (solo las vacaciones aprobadas para pagarse en planilla de vacaciones)."""
     contracts = list(
         employee.contracts.exclude(status=EmploymentContract.Status.CANCELLED)
         .filter(start_date__lte=end)
@@ -103,6 +138,13 @@ def build_input(employee: Employee, start: date, end: date) -> PayInput:
         union_member=employee.is_union_member,
     )
     days = _days(start, end)
+    if mode == "vacation":
+        if params is not None:
+            _add_vacations(inp, employee, contract, end, mode, params)
+        # El pago de vacaciones equivale a un mes de salario: el ISR se proyecta como mensual.
+        inp.frequency = "monthly"
+        return inp
+    vacation_days = vacation_days_between(employee.pk, start, end)
 
     if contract.pay_basis == EmploymentContract.PayBasis.MONTHLY:
         factor = FREQUENCY_FACTOR[contract.pay_frequency] / len(days)
@@ -111,6 +153,8 @@ def build_input(employee: Employee, start: date, end: date) -> PayInput:
             c = contract_on(day)
             if c is None or c.pay_basis != EmploymentContract.PayBasis.MONTHLY:
                 continue
+            if day in vacation_days:
+                continue  # se pagan como vacaciones
             amount, _ = books[c.pk].amount(day)
             if amount is None:
                 inp.warnings.append(f"Sin salario registrado el {day:%d/%m/%Y}.")
@@ -123,6 +167,10 @@ def build_input(employee: Employee, start: date, end: date) -> PayInput:
         inp.hourly_rate = ((monthly_now or ZERO) * 12 / (52 * weekly_hours)).quantize(
             Decimal("0.0001")
         )
+        if vacation_days:
+            inp.explanation.append(
+                f"{len(vacation_days)} día(s) de vacaciones no se pagan como salario."
+            )
         if paid_days < len(days):
             inp.explanation.append(f"Salario proporcional a {paid_days} de {len(days)} días.")
         inp.explanation.append(
@@ -211,18 +259,61 @@ def build_input(employee: Employee, start: date, end: date) -> PayInput:
                 balance=d.balance,
             )
         )
+    if params is not None:
+        _add_vacations(inp, employee, contract, end, mode, params)
     return inp
 
 
 def calculate(
-    employee: Employee, start: date, end: date, pay_date: date | None = None
+    employee: Employee,
+    start: date,
+    end: date,
+    pay_date: date | None = None,
+    mode: str = "regular",
 ) -> PayResult:
     settings: PayrollSettings = settings_for_tenant()
-    inp = build_input(employee, start, end)
+    params = Parameters(settings.country, pay_date or end)
+    inp = build_input(employee, start, end, mode, params)
     if not settings.deduct_unworked_time:
         inp.unworked_minutes = 0
-    params = Parameters(settings.country, pay_date or end)
     result = rules_for(settings.country).calculate(inp, params, settings)
     result.contract_id, result.pay_basis = inp.contract_id, inp.pay_basis
     result.time_entry_ids = list(inp.time_entry_ids)
+    result.vacation_payments = {str(v.request_id): str(v.amount) for v in inp.vacations}
+    return result
+
+
+def decimo_earnings(employee: Employee, start: date, end: date) -> dict[Any, Decimal]:
+    """Devengado por centro de costo en el cuatrimestre (planillas regulares y de vacaciones
+    aprobadas cuyo período termina dentro del cuatrimestre)."""
+    from django.db.models import Sum
+
+    from .models import PayrollLineItem, PayrollRun
+
+    rows = (
+        PayrollLineItem.objects.filter(
+            line__employee=employee,
+            line__run__status__in=[PayrollRun.Status.APPROVED, PayrollRun.Status.PAID],
+            line__run__run_type__in=[PayrollRun.RunType.REGULAR, PayrollRun.RunType.VACATION],
+            line__run__period_end__gte=start,
+            line__run__period_end__lte=end,
+            kind="earning",
+            concept__taxable_css=True,
+        )
+        .values("cost_center_id")
+        .annotate(total=Sum("amount"))
+    )
+    return {r["cost_center_id"]: r["total"] for r in rows if r["total"]}
+
+
+def calculate_decimo(employee: Employee, start: date, end: date, pay_date: date) -> PayResult:
+    settings: PayrollSettings = settings_for_tenant()
+    params = Parameters(settings.country, pay_date)
+    contract = employee.contract_on(end) or employee.contracts.order_by("-start_date").first()
+    if contract is None:
+        raise PayrollInputError(f"{employee.full_name} no tiene contrato.")
+    earnings = decimo_earnings(employee, start, end)
+    rules = rules_for(settings.country)
+    result = rules.calculate_decimo(earnings, contract.cost_center_id, params)
+    result.contract_id, result.pay_basis = contract.pk, contract.pay_basis
     return result

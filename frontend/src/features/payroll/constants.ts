@@ -41,3 +41,29 @@ export function suggestedPeriod(frequency: string): { start: string; end: string
     pay: isoDate(new Date(y, m, last)),
   }
 }
+
+/** Las tres partidas del décimo del año (inicio, fin, pago). */
+export function decimoPeriods(
+  year: number,
+): { label: string; start: string; end: string; pay: string }[] {
+  return [
+    {
+      label: `1ª partida (16/12/${year - 1} – 15/04/${year})`,
+      start: `${year - 1}-12-16`,
+      end: `${year}-04-15`,
+      pay: `${year}-04-15`,
+    },
+    {
+      label: `2ª partida (16/04 – 15/08/${year})`,
+      start: `${year}-04-16`,
+      end: `${year}-08-15`,
+      pay: `${year}-08-15`,
+    },
+    {
+      label: `3ª partida (16/08 – 15/12/${year})`,
+      start: `${year}-08-16`,
+      end: `${year}-12-15`,
+      pay: `${year}-12-15`,
+    },
+  ]
+}

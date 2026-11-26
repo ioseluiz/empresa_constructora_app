@@ -10,6 +10,8 @@ class CountryRules(Protocol):
 
     def calculate(self, inp: Any, params: Any, settings: Any) -> Any: ...
 
+    def calculate_decimo(self, earnings: Any, default_cost_center: Any, params: Any) -> Any: ...
+
 
 _registry: dict[str, CountryRules] = {}
 

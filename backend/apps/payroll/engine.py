@@ -61,6 +61,7 @@ class PayInput:
     explanation: list[str] = field(default_factory=list)
     contract_id: Any = None
     time_entry_ids: list[Any] = field(default_factory=list)
+    vacations: list[Any] = field(default_factory=list)  # payroll.vacations.VacationPay
 
     @property
     def periods_per_year(self) -> int:
@@ -92,6 +93,7 @@ class PayResult:
     contract_id: Any = None
     pay_basis: str = ""
     time_entry_ids: list[Any] = field(default_factory=list)
+    vacation_payments: dict[str, str] = field(default_factory=dict)  # id → monto
 
     def total(self, kind: str) -> Decimal:
         return sum((ln.amount for ln in self.lines if ln.kind == kind), ZERO)

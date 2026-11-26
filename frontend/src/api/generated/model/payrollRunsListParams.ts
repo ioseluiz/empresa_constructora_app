@@ -11,6 +11,8 @@ import type { PayrollRunsListStatus } from './payrollRunsListStatus';
 
 export type PayrollRunsListParams = {
   /**
+   * Solo planillas regulares: el décimo y las vacaciones incluyen a todos.
+   *
    * * `weekly` - Semanal
    * * `biweekly` - Quincenal
    * * `monthly` - Mensual

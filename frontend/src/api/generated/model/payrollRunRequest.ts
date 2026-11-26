@@ -5,13 +5,20 @@
  * API para la gestión de empresas constructoras.
  * OpenAPI spec version: 0.1.0
  */
-import type { PayFrequencyEnum } from './payFrequencyEnum';
+import type { PayrollRunRequestFrequency } from './payrollRunRequestFrequency';
 import type { RunTypeEnum } from './runTypeEnum';
 import type { ScopeEnum } from './scopeEnum';
 
 export interface PayrollRunRequest {
   run_type?: RunTypeEnum;
-  frequency: PayFrequencyEnum;
+  /**
+     * Solo planillas regulares: el décimo y las vacaciones incluyen a todos.
+     *
+     * * `weekly` - Semanal
+     * * `biweekly` - Quincenal
+     * * `monthly` - Mensual
+     */
+  frequency?: typeof PayrollRunRequestFrequency[keyof typeof PayrollRunRequestFrequency];
   scope: ScopeEnum;
   /** @nullable */
   project?: string | null;

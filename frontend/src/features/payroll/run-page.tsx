@@ -45,6 +45,8 @@ import { cn } from '@/lib/utils'
 import { RUN_STATUS } from './constants'
 import { RunDocuments } from './run-documents'
 
+const KIND_ORDER = ['earning', 'deduction', 'employer', 'provision']
+
 const KIND_LABEL: Record<string, string> = {
   earning: 'Ingreso',
   deduction: 'Deducción',
@@ -83,25 +85,27 @@ function LineDetail({ line, payslip }: { line: PayrollLine; payslip?: Payslip })
         <table className="w-full text-sm">
           <thead className="text-muted-foreground text-xs">
             <tr>
-              <th className="py-1 text-left font-medium">Concepto</th>
-              <th className="py-1 text-left font-medium">Tipo</th>
-              <th className="py-1 text-right font-medium">Cantidad</th>
-              <th className="py-1 text-left font-medium">Centro de costo</th>
-              <th className="py-1 text-left font-medium">Detalle</th>
-              <th className="py-1 text-right font-medium">Monto</th>
+              <th className="px-2 py-1 text-left font-medium">Concepto</th>
+              <th className="px-2 py-1 text-left font-medium">Tipo</th>
+              <th className="px-2 py-1 text-right font-medium">Cantidad</th>
+              <th className="px-2 py-1 text-left font-medium">Centro de costo</th>
+              <th className="px-2 py-1 text-left font-medium">Detalle</th>
+              <th className="px-2 py-1 text-right font-medium">Monto</th>
             </tr>
           </thead>
           <tbody>
-            {line.items.map((i) => (
-              <tr key={i.id} className="border-t">
-                <td className="py-1">{i.name}</td>
-                <td className="text-muted-foreground py-1 text-xs">{KIND_LABEL[i.kind]}</td>
-                <td className="py-1 text-right tabular-nums">{i.quantity ?? '—'}</td>
-                <td className="text-muted-foreground py-1">{i.cost_center_code ?? '—'}</td>
-                <td className="text-muted-foreground py-1 text-xs">{i.detail}</td>
-                <td className="py-1 text-right tabular-nums">{formatMoney(i.amount)}</td>
-              </tr>
-            ))}
+            {[...line.items]
+              .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind))
+              .map((i) => (
+                <tr key={i.id} className="border-t">
+                  <td className="px-2 py-1">{i.name}</td>
+                  <td className="text-muted-foreground px-2 py-1 text-xs">{KIND_LABEL[i.kind]}</td>
+                  <td className="px-2 py-1 text-right tabular-nums">{i.quantity ?? '—'}</td>
+                  <td className="text-muted-foreground px-2 py-1">{i.cost_center_code ?? '—'}</td>
+                  <td className="text-muted-foreground px-2 py-1 text-xs">{i.detail}</td>
+                  <td className="px-2 py-1 text-right tabular-nums">{formatMoney(i.amount)}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       )}
@@ -219,7 +223,8 @@ export function RunPage() {
             <Badge variant={st.variant}>{st.label}</Badge>
           </div>
           <p className="text-muted-foreground text-sm">
-            {r.frequency_display} · {formatDate(r.period_start)} – {formatDate(r.period_end)} · pago{' '}
+            {r.run_type === 'regular' ? r.frequency_display : r.run_type_display} ·{' '}
+            {formatDate(r.period_start)} – {formatDate(r.period_end)} · pago{' '}
             {formatDate(r.pay_date)}
             {r.approved_at &&
               ` · aprobada ${formatDateTime(r.approved_at)} por ${r.approved_by_email}`}

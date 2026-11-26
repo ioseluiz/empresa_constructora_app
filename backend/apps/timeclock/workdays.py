@@ -14,6 +14,7 @@ from django.utils import timezone
 from apps.attendance.models import TimeEntry
 from apps.core.tenancy import require_current_tenant
 from apps.hr.models import Employee, ProjectAssignment
+from apps.leave.services import vacation_days_between
 from apps.organization.models import CostCenter, Holiday
 from apps.organization.services import HEAD_OFFICE_CODE
 
@@ -143,6 +144,7 @@ def calculate(employees: Iterable[Employee], date_from: date, date_to: date) -> 
             worked_dates.add(day)
             rows.append(_to_model(tenant, employee, shift, result))
 
+        on_vacation = vacation_days_between(employee.pk, date_from, date_to)
         day = date_from
         while day <= date_to:
             shift = shifts.on(employee.pk, day)
@@ -150,6 +152,7 @@ def calculate(employees: Iterable[Employee], date_from: date, date_to: date) -> 
                 shift is not None
                 and day < today  # el día en curso aún no termina: no es ausencia
                 and day not in worked_dates
+                and day not in on_vacation
                 and (employee.pk, day) not in approved
                 and _employed_on(employee, day)
                 and engine.day_kind_for(day, rule_for(shift), holidays) == "regular"

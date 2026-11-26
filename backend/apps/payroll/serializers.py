@@ -225,6 +225,7 @@ class PreviewResultSerializer(serializers.Serializer):
 class PayrollRunSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     scope_display = serializers.CharField(source="get_scope_display", read_only=True)
+    run_type_display = serializers.CharField(source="get_run_type_display", read_only=True)
     frequency_display = serializers.CharField(source="get_frequency_display", read_only=True)
     project_code = serializers.CharField(source="project.code", read_only=True, default=None)
     calculated_by_email = serializers.EmailField(
@@ -242,6 +243,7 @@ class PayrollRunSerializer(serializers.ModelSerializer):
             "id",
             "number",
             "run_type",
+            "run_type_display",
             "frequency",
             "frequency_display",
             "scope",
@@ -292,14 +294,35 @@ class PayrollRunSerializer(serializers.ModelSerializer):
         self.fields["project"].queryset = Project.objects.all()  # type: ignore[attr-defined]
 
     def validate(self, attrs: dict) -> dict:
+        from .runs import decimo_periods
+
         start, end = attrs["period_start"], attrs["period_end"]
+        run_type = attrs.get("run_type", PayrollRun.RunType.REGULAR)
         if end < start:
             raise serializers.ValidationError({"period_end": "Debe ser posterior al inicio."})
+        if run_type == PayrollRun.RunType.DECIMO:
+            valid = [(s, e) for s, e, _ in decimo_periods(end.year)]
+            if (start, end) not in valid:
+                raise serializers.ValidationError(
+                    {
+                        "period_start": "El décimo se paga por cuatrimestre: 16/12-15/04, "
+                        "16/04-15/08 o 16/08-15/12."
+                    }
+                )
+            attrs["frequency"] = ""
+            return self._common(attrs)
+        if run_type == PayrollRun.RunType.REGULAR and not attrs.get("frequency"):
+            raise serializers.ValidationError({"frequency": "Indica la frecuencia de pago."})
+        if run_type == PayrollRun.RunType.VACATION:
+            attrs["frequency"] = ""
         if (end - start).days > 31:
             raise serializers.ValidationError(
                 {"period_end": "El período no puede pasar de 31 días."}
             )
-        if attrs["pay_date"] < start:
+        return self._common(attrs)
+
+    def _common(self, attrs: dict) -> dict:
+        if attrs["pay_date"] < attrs["period_start"]:
             raise serializers.ValidationError(
                 {"pay_date": "No puede ser anterior al inicio del período."}
             )

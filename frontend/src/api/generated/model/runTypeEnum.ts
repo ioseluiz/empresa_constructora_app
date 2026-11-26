@@ -8,10 +8,14 @@
 
 /**
  * * `regular` - Regular
+ * * `decimo` - Décimo tercer mes
+ * * `vacation` - Vacaciones
  */
 export type RunTypeEnum = typeof RunTypeEnum[keyof typeof RunTypeEnum];
 
 
 export const RunTypeEnum = {
   regular: 'regular',
+  decimo: 'decimo',
+  vacation: 'vacation',
 } as const;
