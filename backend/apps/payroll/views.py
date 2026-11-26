@@ -3,6 +3,7 @@ from typing import Any
 
 from django.db import transaction
 from django.db.models import Count, ProtectedError, Q, QuerySet
+from django.http import FileResponse, HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, serializers, viewsets
@@ -19,28 +20,33 @@ from apps.iam.permissions import TenantPermissionMixin, get_request_scope
 from apps.iam.services import ALL_PROJECTS
 from apps.organization.models import CostCenter
 
-from . import runs
+from . import payslips, reports, runs
 from .calculator import PayrollInputError, calculate
 from .models import (
     LegalParameter,
     PayrollConcept,
     PayrollRun,
     PayrollSettings,
+    Payslip,
     RecurringDeduction,
 )
 from .params import MissingParameter
 from .serializers import (
+    AchSummarySerializer,
     ConsolidatedSerializer,
+    EmailResultSerializer,
     LegalParameterSerializer,
     PayrollConceptSerializer,
     PayrollLineSerializer,
     PayrollRunSerializer,
     PayrollSettingsSerializer,
+    PayslipSerializer,
     PreviewRequestSerializer,
     PreviewResultSerializer,
     RecurringDeductionSerializer,
 )
 from .services import settings_for_tenant
+from .tasks import generate_payslips
 
 VIEW, CONFIG, CALCULATE = "payroll.view", "payroll.config", "payroll.calculate"
 
@@ -194,6 +200,14 @@ class PreviewView(TenantPermissionMixin, APIView):
 # ------------------------------------------------------------------ Sprint 9: corridas
 
 APPROVE = "payroll.approve"
+REPORTS = "payroll.reports"
+
+
+def attachment(content: bytes, filename: str, content_type: str) -> HttpResponse:
+    response = HttpResponse(content, content_type=content_type)
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 def ensure_run_scope(request: Request, permission: str, run_scope: str, project_id: Any) -> None:
@@ -226,6 +240,12 @@ class PayrollRunViewSet(
         "cancel": CALCULATE,
         "approve": APPROVE,
         "pay": APPROVE,
+        "payslips": VIEW,
+        "generate_payslips": APPROVE,
+        "payslips_zip": VIEW,
+        "email_payslips": REPORTS,
+        "ach": REPORTS,
+        "ach_file": REPORTS,
     }
     filterset_fields = ["status", "scope", "project", "frequency"]
     ordering = ["-period_end", "-number"]
@@ -271,7 +291,73 @@ class PayrollRunViewSet(
     @extend_schema(request=None, responses=PayrollRunSerializer)
     @action(detail=True, methods=["post"])
     def approve(self, request: Request, pk: str | None = None) -> Response:
-        return self._act(request, APPROVE, runs.approve_run, audit.Action.APPROVE)
+        response = self._act(request, APPROVE, runs.approve_run, audit.Action.APPROVE)
+        tenant_id, run_id = str(request.tenant.pk), str(response.data["id"])  # type: ignore[attr-defined]
+        transaction.on_commit(lambda: generate_payslips.delay(tenant_id, run_id))
+        return response
+
+    # ---------------------------------------------------------------- comprobantes y archivos
+
+    @extend_schema(responses=PayslipSerializer(many=True))
+    @action(detail=True, methods=["get"], pagination_class=None)
+    def payslips(self, request: Request, pk: str | None = None) -> Response:
+        run = self.get_object()
+        qs = run.payslips.select_related("employee", "run").order_by("number")
+        return Response(PayslipSerializer(qs, many=True).data)
+
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    @action(detail=True, methods=["post"], url_path="payslips/generate")
+    def generate_payslips(self, request: Request, pk: str | None = None) -> Response:
+        """Emite los comprobantes que falten (si la generación automática no terminó)."""
+        run = self.get_object()
+        ensure_run_scope(request, APPROVE, run.scope, run.project_id)
+        try:
+            created = payslips.generate_for_run(run)
+        except ValueError as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
+        return Response({"created": created})
+
+    @extend_schema(responses={(200, "application/zip"): OpenApiTypes.BINARY})
+    @action(detail=True, methods=["get"], url_path="payslips/zip")
+    def payslips_zip(self, request: Request, pk: str | None = None) -> HttpResponse:
+        run = self.get_object()
+        if not run.payslips.exists():
+            raise ValidationError({"detail": "La planilla aún no tiene comprobantes."})
+        audit.record(audit.Action.EXPORT, run, request=request, changes={"comprobantes": "zip"})
+        return attachment(
+            payslips.zip_for_run(run), f"comprobantes_planilla_{run.number}.zip", "application/zip"
+        )
+
+    @extend_schema(request=None, responses=EmailResultSerializer)
+    @action(detail=True, methods=["post"], url_path="payslips/email")
+    def email_payslips(self, request: Request, pk: str | None = None) -> Response:
+        run = self.get_object()
+        ensure_run_scope(request, REPORTS, run.scope, run.project_id)
+        result = payslips.email_payslips(list(run.payslips.select_related("employee", "run")))
+        audit.record(audit.Action.EXPORT, run, request=request, changes={"correos": result["sent"]})
+        return Response(result)
+
+    @extend_schema(responses=AchSummarySerializer)
+    @action(detail=True, methods=["get"], url_path="ach")
+    def ach(self, request: Request, pk: str | None = None) -> Response:
+        run = self.get_object()
+        return Response(AchSummarySerializer(reports.ach_summary(run).__dict__).data)
+
+    @extend_schema(responses={(200, "text/csv"): OpenApiTypes.BINARY})
+    @action(detail=True, methods=["get"], url_path="ach/file")
+    def ach_file(self, request: Request, pk: str | None = None) -> HttpResponse:
+        run = self.get_object()
+        ensure_run_scope(request, REPORTS, run.scope, run.project_id)
+        if run.status not in (PayrollRun.Status.APPROVED, PayrollRun.Status.PAID):
+            raise ValidationError(
+                {"detail": "El archivo de pago se genera con la planilla aprobada."}
+            )
+        try:
+            name, content = reports.ach_file(run)
+        except ValueError as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
+        audit.record(audit.Action.EXPORT, run, request=request, changes={"archivo": name})
+        return attachment(content, name, "text/csv; charset=utf-8")
 
     @extend_schema(request=None, responses=PayrollRunSerializer)
     @action(detail=True, methods=["post"])
@@ -332,3 +418,70 @@ class ConsolidatedView(TenantPermissionMixin, APIView):
         include = request.query_params.get("include_calculated") in ("true", "1")
         selected = runs.runs_paid_between(start, end, include)
         return Response(ConsolidatedSerializer(runs.consolidated(selected)).data)
+
+
+@extend_schema(tags=["planilla"])
+class PayslipViewSet(TenantPermissionMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Comprobantes emitidos (p. ej. los de un empleado en su expediente)."""
+
+    serializer_class = PayslipSerializer
+    required_permission = VIEW
+    filterset_fields = ["employee", "run"]
+
+    def get_queryset(self) -> QuerySet[Payslip]:
+        qs = Payslip.objects.select_related("employee", "run")
+        if getattr(self, "swagger_fake_view", False):
+            return qs
+        scope = get_request_scope(self.request, VIEW)
+        if scope == ALL_PROJECTS:
+            return qs
+        return qs.filter(run__scope=PayrollRun.Scope.PROJECT, run__project_id__in=scope)
+
+    @extend_schema(responses={(200, "application/pdf"): OpenApiTypes.BINARY})
+    @action(detail=True, methods=["get"])
+    def download(self, request: Request, pk: str | None = None) -> FileResponse:
+        slip = self.get_object()
+        audit.record(audit.Action.EXPORT, slip, request=request, changes={"descarga": slip.number})
+        response = FileResponse(
+            slip.pdf.open("rb"),
+            as_attachment=True,
+            filename=f"comprobante_{slip.number:07d}_{slip.employee.code}.pdf",
+            content_type="application/pdf",
+        )
+        response["Cache-Control"] = "private, no-store"
+        return response
+
+
+@extend_schema(tags=["planilla"])
+class SipeReportView(TenantPermissionMixin, APIView):
+    """Informe mensual de cuotas de Seguro Social y Seguro Educativo (Excel)."""
+
+    required_permission = REPORTS
+
+    @extend_schema(
+        parameters=[OpenApiParameter("month", str, required=True, description="AAAA-MM")],
+        responses={
+            (
+                200,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ): OpenApiTypes.BINARY
+        },
+    )
+    def get(self, request: Request) -> HttpResponse:
+        if get_request_scope(request, REPORTS) != ALL_PROJECTS:
+            raise PermissionDenied("El informe de la CSS requiere acceso a toda la empresa.")
+        try:
+            year, month = reports.month_bounds(request.query_params.get("month", ""))
+        except ValueError as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
+        audit.record(
+            audit.Action.EXPORT,
+            object_type="payroll.report",
+            object_repr=f"SIPE {month:02d}/{year}",
+            request=request,
+        )
+        return attachment(
+            reports.sipe_workbook(year, month),
+            f"cuotas_css_se_{year}{month:02d}.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )

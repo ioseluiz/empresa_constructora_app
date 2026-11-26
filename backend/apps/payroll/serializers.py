@@ -13,6 +13,7 @@ from .models import (
     PayrollLineItem,
     PayrollRun,
     PayrollSettings,
+    Payslip,
     RecurringDeduction,
 )
 
@@ -37,7 +38,17 @@ class LegalParameterSerializer(serializers.ModelSerializer):
 class PayrollSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PayrollSettings
-        fields = ["country", "occupational_risk_rate", "union_dues_rate", "deduct_unworked_time"]
+        fields = [
+            "country",
+            "occupational_risk_rate",
+            "union_dues_rate",
+            "deduct_unworked_time",
+            "payslip_show_employer",
+            "company_bank",
+            "company_account_type",
+            "company_account_number",
+            "ach_routes",
+        ]
         read_only_fields = ["country"]
 
     def validate_occupational_risk_rate(self, value: Any) -> Any:
@@ -46,6 +57,16 @@ class PayrollSettingsSerializer(serializers.ModelSerializer):
                 "Indica la tasa como fracción (ej.: 0.0567 = 5.67 %)."
             )
         return value
+
+    def validate_ach_routes(self, value: Any) -> Any:
+        from apps.organization.panama import BANKS
+
+        codes = {code for code, _ in BANKS}
+        if not isinstance(value, dict) or any(k not in codes for k in value):
+            raise serializers.ValidationError("Usa los códigos de banco del catálogo.")
+        if any(not str(v).isdigit() for v in value.values() if v):
+            raise serializers.ValidationError("Los códigos de ruta son numéricos.")
+        return {k: str(v) for k, v in value.items() if v}
 
     def validate_union_dues_rate(self, value: Any) -> Any:
         if value < 0 or value > Decimal("0.2"):
@@ -369,3 +390,61 @@ class ConsolidatedSerializer(serializers.Serializer):
     totals = RunTotalsSerializer()
     by_cost_center = CostCenterTotalSerializer(many=True)
     by_concept = ConceptTotalSerializer(many=True)
+
+
+class PayslipSerializer(serializers.ModelSerializer):
+    employee_code = serializers.CharField(source="employee.code", read_only=True)
+    employee_name = serializers.CharField(source="employee.full_name", read_only=True)
+    run_number = serializers.IntegerField(source="run.number", read_only=True)
+    period_start = serializers.DateField(source="run.period_start", read_only=True)
+    period_end = serializers.DateField(source="run.period_end", read_only=True)
+    pay_date = serializers.DateField(source="run.pay_date", read_only=True)
+
+    class Meta:
+        model = Payslip
+        fields = [
+            "id",
+            "number",
+            "run",
+            "run_number",
+            "employee",
+            "employee_code",
+            "employee_name",
+            "period_start",
+            "period_end",
+            "pay_date",
+            "net",
+            "emailed_at",
+            "emailed_to",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class EmailResultSerializer(serializers.Serializer):
+    sent = serializers.IntegerField()
+    missing_email = serializers.ListField(child=serializers.CharField())
+
+
+class AchRowSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    id_number = serializers.CharField()
+    bank = serializers.CharField()
+    route = serializers.CharField()
+    account_type = serializers.CharField()
+    account_number = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=18, decimal_places=2)
+
+
+class NonAchSerializer(serializers.Serializer):
+    employee = serializers.CharField()
+    method = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=18, decimal_places=2)
+
+
+class AchSummarySerializer(serializers.Serializer):
+    rows = AchRowSerializer(many=True)
+    total = serializers.DecimalField(max_digits=18, decimal_places=2)
+    blocking = serializers.ListField(child=serializers.CharField())
+    warnings = serializers.ListField(child=serializers.CharField())
+    non_ach = NonAchSerializer(many=True)

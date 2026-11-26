@@ -4954,6 +4954,116 @@
                 }
             }
         },
+        "/api/v1/payroll/payslips/": {
+            "get": {
+                "operationId": "payroll_payslips_list",
+                "description": "Comprobantes emitidos (p. ej. los de un empleado en su expediente).",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "employee",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "run",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedPayslipList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/payslips/{id}/download/": {
+            "get": {
+                "operationId": "payroll_payslips_download_retrieve",
+                "description": "Comprobantes emitidos (p. ej. los de un empleado en su expediente).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este comprobante de pago.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/payroll/preview/": {
             "post": {
                 "operationId": "payroll_preview_create",
@@ -4992,6 +5102,44 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PreviewResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/reports/sipe/": {
+            "get": {
+                "operationId": "payroll_reports_sipe_retrieve",
+                "description": "Informe mensual de cuotas de Seguro Social y Seguro Educativo (Excel).",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "month",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "AAAA-MM",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
                                 }
                             }
                         },
@@ -5181,6 +5329,83 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/ach/": {
+            "get": {
+                "operationId": "payroll_runs_ach_retrieve",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AchSummary"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/ach/file/": {
+            "get": {
+                "operationId": "payroll_runs_ach_file_retrieve",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "text/csv": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
                                 }
                             }
                         },
@@ -5446,6 +5671,233 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/payslips/": {
+            "get": {
+                "operationId": "payroll_runs_payslips_list",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "frequency",
+                        "schema": {
+                            "type": "string",
+                            "title": "Frecuencia",
+                            "enum": [
+                                "biweekly",
+                                "monthly",
+                                "weekly"
+                            ]
+                        },
+                        "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "scope",
+                        "schema": {
+                            "type": "string",
+                            "title": "Alcance",
+                            "enum": [
+                                "company",
+                                "office",
+                                "project"
+                            ]
+                        },
+                        "description": "* `project` - Proyecto\n* `office` - Oficina central\n* `company` - Toda la empresa"
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "title": "Estado",
+                            "enum": [
+                                "approved",
+                                "calculated",
+                                "cancelled",
+                                "draft",
+                                "paid"
+                            ]
+                        },
+                        "description": "* `draft` - Borrador\n* `calculated` - Calculada\n* `approved` - Aprobada\n* `paid` - Pagada\n* `cancelled` - Anulada"
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Payslip"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/payslips/email/": {
+            "post": {
+                "operationId": "payroll_runs_payslips_email_create",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmailResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/payslips/generate/": {
+            "post": {
+                "operationId": "payroll_runs_payslips_generate_create",
+                "description": "Emite los comprobantes que falten (si la generación automática no terminó).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/payslips/zip/": {
+            "get": {
+                "operationId": "payroll_runs_payslips_zip_retrieve",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/zip": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
                                 }
                             }
                         },
@@ -8338,6 +8790,84 @@
                 "type": "string",
                 "description": "* `savings` - Ahorros\n* `checking` - Corriente"
             },
+            "AchRow": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "id_number": {
+                        "type": "string"
+                    },
+                    "bank": {
+                        "type": "string"
+                    },
+                    "route": {
+                        "type": "string"
+                    },
+                    "account_type": {
+                        "type": "string"
+                    },
+                    "account_number": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    }
+                },
+                "required": [
+                    "account_number",
+                    "account_type",
+                    "amount",
+                    "bank",
+                    "id_number",
+                    "name",
+                    "route"
+                ]
+            },
+            "AchSummary": {
+                "type": "object",
+                "properties": {
+                    "rows": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AchRow"
+                        }
+                    },
+                    "total": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "blocking": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "non_ach": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NonAch"
+                        }
+                    }
+                },
+                "required": [
+                    "blocking",
+                    "non_ach",
+                    "rows",
+                    "total",
+                    "warnings"
+                ]
+            },
             "ActionEnum": {
                 "enum": [
                     "create",
@@ -9225,6 +9755,24 @@
                 ],
                 "type": "string",
                 "description": "* `in` - Entrada\n* `out` - Salida\n* `unknown` - Sin tipo"
+            },
+            "EmailResult": {
+                "type": "object",
+                "properties": {
+                    "sent": {
+                        "type": "integer"
+                    },
+                    "missing_email": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "missing_email",
+                    "sent"
+                ]
             },
             "Employee": {
                 "type": "object",
@@ -11399,6 +11947,27 @@
                     "roles"
                 ]
             },
+            "NonAch": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "employee",
+                    "method"
+                ]
+            },
             "PaginatedAuditLogList": {
                 "type": "object",
                 "required": [
@@ -11581,6 +12150,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/PayrollRun"
+                        }
+                    }
+                }
+            },
+            "PaginatedPayslipList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Payslip"
                         }
                     }
                 }
@@ -12485,6 +13085,41 @@
                         "type": "boolean",
                         "title": "Descontar tiempo no laborado a asalariados",
                         "description": "Ausencias, tardanzas y salidas anticipadas de jornadas aprobadas."
+                    },
+                    "payslip_show_employer": {
+                        "type": "boolean",
+                        "title": "Mostrar aportes patronales en el comprobante"
+                    },
+                    "company_bank": {
+                        "title": "Banco de la empresa",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/BankEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "company_account_type": {
+                        "title": "Tipo de cuenta de la empresa",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AccountTypeEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "company_account_number": {
+                        "type": "string",
+                        "title": "Cuenta de la empresa",
+                        "maxLength": 30
+                    },
+                    "ach_routes": {
+                        "title": "Códigos de ruta ACH por banco",
+                        "description": "Ej.: {\"banco_general\": \"71\"}. Los da el banco al habilitar el servicio ACH."
                     }
                 }
             },
@@ -13564,10 +14199,141 @@
                         "type": "boolean",
                         "title": "Descontar tiempo no laborado a asalariados",
                         "description": "Ausencias, tardanzas y salidas anticipadas de jornadas aprobadas."
+                    },
+                    "payslip_show_employer": {
+                        "type": "boolean",
+                        "title": "Mostrar aportes patronales en el comprobante"
+                    },
+                    "company_bank": {
+                        "title": "Banco de la empresa",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/BankEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "company_account_type": {
+                        "title": "Tipo de cuenta de la empresa",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AccountTypeEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "company_account_number": {
+                        "type": "string",
+                        "title": "Cuenta de la empresa",
+                        "maxLength": 30
+                    },
+                    "ach_routes": {
+                        "title": "Códigos de ruta ACH por banco",
+                        "description": "Ej.: {\"banco_general\": \"71\"}. Los da el banco al habilitar el servicio ACH."
                     }
                 },
                 "required": [
                     "country"
+                ]
+            },
+            "Payslip": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "number": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Número"
+                    },
+                    "run": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Planilla"
+                    },
+                    "run_number": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "period_start": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "period_end": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "pay_date": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "net": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Neto"
+                    },
+                    "emailed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Enviado por correo"
+                    },
+                    "emailed_to": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true,
+                        "title": "Enviado a"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "emailed_at",
+                    "emailed_to",
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                    "id",
+                    "net",
+                    "number",
+                    "pay_date",
+                    "period_end",
+                    "period_start",
+                    "run",
+                    "run_number"
                 ]
             },
             "Permission": {

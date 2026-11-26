@@ -25,10 +25,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AchSummary,
   Consolidated,
+  EmailResult,
   LegalParameter,
   PaginatedPayrollLineList,
   PaginatedPayrollRunList,
+  PaginatedPayslipList,
   PatchedPayrollConceptRequest,
   PatchedPayrollSettingsRequest,
   PatchedRecurringDeductionRequest,
@@ -38,11 +41,16 @@ import type {
   PayrollConsolidatedRetrieveParams,
   PayrollDeductionsListParams,
   PayrollLegalParametersListParams,
+  PayrollPayslipsListParams,
+  PayrollReportsSipeRetrieveParams,
   PayrollRun,
   PayrollRunRequest,
   PayrollRunsLinesListParams,
   PayrollRunsListParams,
+  PayrollRunsPayslipsGenerateCreate200,
+  PayrollRunsPayslipsListParams,
   PayrollSettings,
+  Payslip,
   PreviewRequestRequest,
   PreviewResult,
   RecurringDeduction,
@@ -1225,6 +1233,213 @@ export function usePayrollLegalParametersList<TData = Awaited<ReturnType<typeof 
 
 
 
+export const getPayrollPayslipsListUrl = (params?: PayrollPayslipsListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/payroll/payslips/?${stringifiedParams}` : `/api/v1/payroll/payslips/`
+}
+
+/**
+ * Comprobantes emitidos (p. ej. los de un empleado en su expediente).
+ */
+export const payrollPayslipsList = async (params?: PayrollPayslipsListParams, options?: Parameters<typeof customFetch>[1]): Promise<PaginatedPayslipList> => {
+
+  return customFetch<PaginatedPayslipList>(getPayrollPayslipsListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollPayslipsListQueryKey = (params?: PayrollPayslipsListParams,) => {
+    return [
+    `/api/v1/payroll/payslips/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPayrollPayslipsListQueryOptions = <TData = Awaited<ReturnType<typeof payrollPayslipsList>>, TError = ErrorType<unknown>>(params?: PayrollPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPayrollPayslipsListQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof payrollPayslipsList>>> = ({ signal }) => payrollPayslipsList(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PayrollPayslipsListQueryResult = NonNullable<Awaited<ReturnType<typeof payrollPayslipsList>>>
+export type PayrollPayslipsListQueryError = ErrorType<unknown>
+
+
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsList<TData = Awaited<ReturnType<typeof payrollPayslipsList>>, TError = ErrorType<unknown>>(
+ params: undefined |  PayrollPayslipsListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollPayslipsList>>,
+          TError,
+          Awaited<ReturnType<typeof payrollPayslipsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsList<TData = Awaited<ReturnType<typeof payrollPayslipsList>>, TError = ErrorType<unknown>>(
+ params?: PayrollPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollPayslipsList>>,
+          TError,
+          Awaited<ReturnType<typeof payrollPayslipsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsList<TData = Awaited<ReturnType<typeof payrollPayslipsList>>, TError = ErrorType<unknown>>(
+ params?: PayrollPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsList<TData = Awaited<ReturnType<typeof payrollPayslipsList>>, TError = ErrorType<unknown>>(
+ params?: PayrollPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPayrollPayslipsListQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPayrollPayslipsDownloadRetrieveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/payroll/payslips/${id}/download/`
+}
+
+/**
+ * Comprobantes emitidos (p. ej. los de un empleado en su expediente).
+ */
+export const payrollPayslipsDownloadRetrieve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getPayrollPayslipsDownloadRetrieveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollPayslipsDownloadRetrieveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/payroll/payslips/${id}/download/`
+    ] as const;
+    }
+
+
+export const getPayrollPayslipsDownloadRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPayrollPayslipsDownloadRetrieveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>> = ({ signal }) => payrollPayslipsDownloadRetrieve(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PayrollPayslipsDownloadRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>>
+export type PayrollPayslipsDownloadRetrieveQueryError = ErrorType<unknown>
+
+
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsDownloadRetrieve<TData = Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsDownloadRetrieve<TData = Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsDownloadRetrieve<TData = Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Comprobantes emitidos (p. ej. los de un empleado en su expediente). */
+export function usePayrollPayslipsDownloadRetrieve<TData = Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollPayslipsDownloadRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPayrollPayslipsDownloadRetrieveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 export const getPayrollPreviewCreateUrl = () => {
 
 
@@ -1300,7 +1515,114 @@ export const usePayrollPreviewCreate = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getPayrollPreviewCreateMutationOptions(options), queryClient);
     }
-    export const getPayrollRunsListUrl = (params?: PayrollRunsListParams,) => {
+    export const getPayrollReportsSipeRetrieveUrl = (params: PayrollReportsSipeRetrieveParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/payroll/reports/sipe/?${stringifiedParams}` : `/api/v1/payroll/reports/sipe/`
+}
+
+/**
+ * Informe mensual de cuotas de Seguro Social y Seguro Educativo (Excel).
+ */
+export const payrollReportsSipeRetrieve = async (params: PayrollReportsSipeRetrieveParams, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getPayrollReportsSipeRetrieveUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollReportsSipeRetrieveQueryKey = (params?: PayrollReportsSipeRetrieveParams,) => {
+    return [
+    `/api/v1/payroll/reports/sipe/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPayrollReportsSipeRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError = ErrorType<unknown>>(params: PayrollReportsSipeRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPayrollReportsSipeRetrieveQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>> = ({ signal }) => payrollReportsSipeRetrieve(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PayrollReportsSipeRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>>
+export type PayrollReportsSipeRetrieveQueryError = ErrorType<unknown>
+
+
+/** Informe mensual de cuotas de Seguro Social y Seguro Educativo (Excel). */
+export function usePayrollReportsSipeRetrieve<TData = Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError = ErrorType<unknown>>(
+ params: PayrollReportsSipeRetrieveParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Informe mensual de cuotas de Seguro Social y Seguro Educativo (Excel). */
+export function usePayrollReportsSipeRetrieve<TData = Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError = ErrorType<unknown>>(
+ params: PayrollReportsSipeRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Informe mensual de cuotas de Seguro Social y Seguro Educativo (Excel). */
+export function usePayrollReportsSipeRetrieve<TData = Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError = ErrorType<unknown>>(
+ params: PayrollReportsSipeRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** Informe mensual de cuotas de Seguro Social y Seguro Educativo (Excel). */
+export function usePayrollReportsSipeRetrieve<TData = Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError = ErrorType<unknown>>(
+ params: PayrollReportsSipeRetrieveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollReportsSipeRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPayrollReportsSipeRetrieveQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPayrollRunsListUrl = (params?: PayrollRunsListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -1597,6 +1919,232 @@ export function usePayrollRunsRetrieve<TData = Awaited<ReturnType<typeof payroll
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPayrollRunsRetrieveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPayrollRunsAchRetrieveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/payroll/runs/${id}/ach/`
+}
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export const payrollRunsAchRetrieve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<AchSummary> => {
+
+  return customFetch<AchSummary>(getPayrollRunsAchRetrieveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollRunsAchRetrieveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/payroll/runs/${id}/ach/`
+    ] as const;
+    }
+
+
+export const getPayrollRunsAchRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPayrollRunsAchRetrieveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>> = ({ signal }) => payrollRunsAchRetrieve(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PayrollRunsAchRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>>
+export type PayrollRunsAchRetrieveQueryError = ErrorType<unknown>
+
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsAchRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsAchRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsAchRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsAchRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPayrollRunsAchRetrieveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPayrollRunsAchFileRetrieveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/payroll/runs/${id}/ach/file/`
+}
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export const payrollRunsAchFileRetrieve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getPayrollRunsAchFileRetrieveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollRunsAchFileRetrieveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/payroll/runs/${id}/ach/file/`
+    ] as const;
+    }
+
+
+export const getPayrollRunsAchFileRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPayrollRunsAchFileRetrieveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>> = ({ signal }) => payrollRunsAchFileRetrieve(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PayrollRunsAchFileRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>>
+export type PayrollRunsAchFileRetrieveQueryError = ErrorType<unknown>
+
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchFileRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchFileRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchFileRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsAchFileRetrieve<TData = Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsAchFileRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPayrollRunsAchFileRetrieveQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -2036,7 +2584,394 @@ export const usePayrollRunsPayCreate = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getPayrollRunsPayCreateMutationOptions(options), queryClient);
     }
-    export const getPayrollRunsSummaryRetrieveUrl = (id: string,) => {
+    export const getPayrollRunsPayslipsListUrl = (id: string,
+    params?: PayrollRunsPayslipsListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/payroll/runs/${id}/payslips/?${stringifiedParams}` : `/api/v1/payroll/runs/${id}/payslips/`
+}
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export const payrollRunsPayslipsList = async (id: string,
+    params?: PayrollRunsPayslipsListParams, options?: Parameters<typeof customFetch>[1]): Promise<Payslip[]> => {
+
+  return customFetch<Payslip[]>(getPayrollRunsPayslipsListUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollRunsPayslipsListQueryKey = (id: string,
+    params?: PayrollRunsPayslipsListParams,) => {
+    return [
+    `/api/v1/payroll/runs/${id}/payslips/`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPayrollRunsPayslipsListQueryOptions = <TData = Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError = ErrorType<unknown>>(id: string,
+    params?: PayrollRunsPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPayrollRunsPayslipsListQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof payrollRunsPayslipsList>>> = ({ signal }) => payrollRunsPayslipsList(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PayrollRunsPayslipsListQueryResult = NonNullable<Awaited<ReturnType<typeof payrollRunsPayslipsList>>>
+export type PayrollRunsPayslipsListQueryError = ErrorType<unknown>
+
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsList<TData = Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError = ErrorType<unknown>>(
+ id: string,
+    params: undefined |  PayrollRunsPayslipsListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsPayslipsList>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsPayslipsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsList<TData = Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError = ErrorType<unknown>>(
+ id: string,
+    params?: PayrollRunsPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsPayslipsList>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsPayslipsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsList<TData = Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError = ErrorType<unknown>>(
+ id: string,
+    params?: PayrollRunsPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsList<TData = Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError = ErrorType<unknown>>(
+ id: string,
+    params?: PayrollRunsPayslipsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPayrollRunsPayslipsListQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPayrollRunsPayslipsEmailCreateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/payroll/runs/${id}/payslips/email/`
+}
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export const payrollRunsPayslipsEmailCreate = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<EmailResult> => {
+
+  return customFetch<EmailResult>(getPayrollRunsPayslipsEmailCreateUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollRunsPayslipsEmailCreateMutationKey = () => ['payrollRunsPayslipsEmailCreate'] as const;
+
+export const getPayrollRunsPayslipsEmailCreateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof payrollRunsPayslipsEmailCreate>>, TError,PayrollRunsPayslipsEmailCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof payrollRunsPayslipsEmailCreate>>, TError,PayrollRunsPayslipsEmailCreateMutationVariables, TContext> => {
+
+const mutationKey = getPayrollRunsPayslipsEmailCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof payrollRunsPayslipsEmailCreate>>, PayrollRunsPayslipsEmailCreateMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  payrollRunsPayslipsEmailCreate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PayrollRunsPayslipsEmailCreateMutationResult = NonNullable<Awaited<ReturnType<typeof payrollRunsPayslipsEmailCreate>>>
+
+    export type PayrollRunsPayslipsEmailCreateMutationError = ErrorType<unknown>
+    export type PayrollRunsPayslipsEmailCreateMutationVariables = {id: string}
+
+    /**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export const usePayrollRunsPayslipsEmailCreate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof payrollRunsPayslipsEmailCreate>>, TError,PayrollRunsPayslipsEmailCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof payrollRunsPayslipsEmailCreate>>,
+        TError,
+        PayrollRunsPayslipsEmailCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPayrollRunsPayslipsEmailCreateMutationOptions(options), queryClient);
+    }
+    export const getPayrollRunsPayslipsGenerateCreateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/payroll/runs/${id}/payslips/generate/`
+}
+
+/**
+ * Emite los comprobantes que falten (si la generación automática no terminó).
+ */
+export const payrollRunsPayslipsGenerateCreate = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<PayrollRunsPayslipsGenerateCreate200> => {
+
+  return customFetch<PayrollRunsPayslipsGenerateCreate200>(getPayrollRunsPayslipsGenerateCreateUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollRunsPayslipsGenerateCreateMutationKey = () => ['payrollRunsPayslipsGenerateCreate'] as const;
+
+export const getPayrollRunsPayslipsGenerateCreateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof payrollRunsPayslipsGenerateCreate>>, TError,PayrollRunsPayslipsGenerateCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof payrollRunsPayslipsGenerateCreate>>, TError,PayrollRunsPayslipsGenerateCreateMutationVariables, TContext> => {
+
+const mutationKey = getPayrollRunsPayslipsGenerateCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof payrollRunsPayslipsGenerateCreate>>, PayrollRunsPayslipsGenerateCreateMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  payrollRunsPayslipsGenerateCreate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PayrollRunsPayslipsGenerateCreateMutationResult = NonNullable<Awaited<ReturnType<typeof payrollRunsPayslipsGenerateCreate>>>
+
+    export type PayrollRunsPayslipsGenerateCreateMutationError = ErrorType<unknown>
+    export type PayrollRunsPayslipsGenerateCreateMutationVariables = {id: string}
+
+    /** Emite los comprobantes que falten (si la generación automática no terminó). */
+export const usePayrollRunsPayslipsGenerateCreate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof payrollRunsPayslipsGenerateCreate>>, TError,PayrollRunsPayslipsGenerateCreateMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof payrollRunsPayslipsGenerateCreate>>,
+        TError,
+        PayrollRunsPayslipsGenerateCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPayrollRunsPayslipsGenerateCreateMutationOptions(options), queryClient);
+    }
+    export const getPayrollRunsPayslipsZipRetrieveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/payroll/runs/${id}/payslips/zip/`
+}
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export const payrollRunsPayslipsZipRetrieve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getPayrollRunsPayslipsZipRetrieveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPayrollRunsPayslipsZipRetrieveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/payroll/runs/${id}/payslips/zip/`
+    ] as const;
+    }
+
+
+export const getPayrollRunsPayslipsZipRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPayrollRunsPayslipsZipRetrieveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>> = ({ signal }) => payrollRunsPayslipsZipRetrieve(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PayrollRunsPayslipsZipRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>>
+export type PayrollRunsPayslipsZipRetrieveQueryError = ErrorType<unknown>
+
+
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsZipRetrieve<TData = Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsZipRetrieve<TData = Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsZipRetrieve<TData = Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+ * aprobar). Una planilla aprobada no cambia.
+ */
+export function usePayrollRunsPayslipsZipRetrieve<TData = Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof payrollRunsPayslipsZipRetrieve>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPayrollRunsPayslipsZipRetrieveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPayrollRunsSummaryRetrieveUrl = (id: string,) => {
 
 
 

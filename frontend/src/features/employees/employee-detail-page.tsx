@@ -17,6 +17,7 @@ import { EMPLOYEE_STATUS, MARITAL_STATUS } from './constants'
 import { ContractsTab } from './contracts-tab'
 import { DeductionsTab } from './deductions-tab'
 import { DocumentsTab } from './documents-tab'
+import { PayslipsTab } from './payslips-tab'
 import { EmployeeDialog } from './employee-dialog'
 
 const TABS = [
@@ -25,6 +26,7 @@ const TABS = [
   { id: 'proyectos', label: 'Proyectos' },
   { id: 'documentos', label: 'Documentos' },
   { id: 'descuentos', label: 'Descuentos', permission: 'payroll.view' },
+  { id: 'comprobantes', label: 'Comprobantes', permission: 'payroll.view' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -203,6 +205,7 @@ export function EmployeeDetailPage() {
         {tab === 'proyectos' && <AssignmentsTab employee={e} />}
         {tab === 'documentos' && <DocumentsTab employee={e} />}
         {tab === 'descuentos' && <DeductionsTab employee={e} />}
+        {tab === 'comprobantes' && <PayslipsTab employee={e} />}
       </div>
       {editing && <EmployeeDialog employee={e} onClose={() => setEditing(false)} />}
     </div>

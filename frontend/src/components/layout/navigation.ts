@@ -39,7 +39,7 @@ export const navigation: NavSection[] = [
       { label: 'Marcaciones', to: '/marcaciones', icon: Clock, permission: 'timeclock.view' },
       { label: 'Planilla', to: '/planilla', icon: Wallet, permission: 'payroll.view' },
       { label: 'Vacaciones', to: '/vacaciones', icon: CalendarDays, sprint: 11 },
-      { label: 'Reportes', to: '/reportes', icon: FileText, sprint: 10 },
+      { label: 'Reportes', to: '/reportes', icon: FileText, permission: 'payroll.reports' },
     ],
   },
   {

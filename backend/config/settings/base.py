@@ -154,6 +154,8 @@ SPECTACULAR_SETTINGS = {
         "JornadaEnum": "apps.timeclock.models.WorkDay.Jornada",
         "PayFrequencyEnum": "apps.payroll.models.PayrollRun.Frequency",
         "PayrollConceptKindEnum": "apps.payroll.models.PayrollConcept.Kind",
+        "BankEnum": "apps.organization.panama.BANKS",
+        "AccountTypeEnum": "apps.hr.models.Employee.AccountType",
     },
 }
 
