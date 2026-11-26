@@ -153,6 +153,13 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
   aplicadas están documentadas en `payroll_pa/rules.py`; los casos de referencia, en
   `payroll/tests/test_rules_pa.py`.
 - `POST /api/v1/payroll/preview/` simula un empleado y período sin guardar nada.
+- Corridas (`payroll/runs.py`): borrador → calculada → aprobada → pagada (o anulada antes de
+  aprobar). El alcance (proyecto, oficina central o empresa) se toma del contrato del empleado
+  con la frecuencia de la corrida; un empleado no puede estar en dos corridas activas del mismo
+  período. Al aprobar se bloquean las horas usadas (`TimeEntry.locked`), se abonan los
+  préstamos y la corrida queda inmutable. Las horas aprobadas tarde se pagan en la corrida
+  siguiente (hasta 62 días atrás).
+- `GET /api/v1/payroll/consolidated/` es la planilla global por centro de costo y concepto.
 
 ## Cliente de la API (orval)
 

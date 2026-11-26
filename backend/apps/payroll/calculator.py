@@ -25,6 +25,9 @@ FREQUENCY_FACTOR = {
 }
 
 
+PRIOR_UNPAID_DAYS = 62
+
+
 class PayrollInputError(Exception):
     pass
 
@@ -90,6 +93,7 @@ def build_input(employee: Employee, start: date, end: date) -> PayInput:
         return None
 
     inp = PayInput(
+        contract_id=contract.pk,
         employee_id=employee.pk,
         period_start=start,
         period_end=end,
@@ -125,7 +129,21 @@ def build_input(employee: Employee, start: date, end: date) -> PayInput:
             f"Valor hora {inp.hourly_rate} = salario mensual × 12 / (52 × {weekly_hours} h)."
         )
 
-    for entry in TimeEntry.objects.filter(employee=employee, date__gte=start, date__lte=end):
+    # Horas aprobadas aún no pagadas: las del período y las aprobadas tarde de períodos
+    # anteriores (hasta 62 días), que se pagan como ajuste en esta planilla.
+    entries = TimeEntry.objects.filter(
+        employee=employee,
+        locked=False,
+        date__gte=start - timedelta(days=PRIOR_UNPAID_DAYS),
+        date__lte=end,
+    ).order_by("date")
+    prior = [e for e in entries if e.date < start]
+    if prior:
+        inp.explanation.append(
+            f"Incluye {len(prior)} registro(s) de horas de días anteriores al período "
+            "aún no pagados."
+        )
+    for entry in entries:
         c = contract_on(entry.date)
         if c is None:
             inp.warnings.append(f"Horas del {entry.date:%d/%m/%Y} fuera de contrato: no se pagan.")
@@ -144,6 +162,7 @@ def build_input(employee: Employee, start: date, end: date) -> PayInput:
                     f"Tarifa {rate} inferior a la de la convención ({cba}) "
                     f"el {entry.date:%d/%m/%Y}."
                 )
+        inp.time_entry_ids.append(entry.pk)
         inp.entries.append(
             HoursEntry(
                 date=entry.date,
@@ -203,4 +222,7 @@ def calculate(
     if not settings.deduct_unworked_time:
         inp.unworked_minutes = 0
     params = Parameters(settings.country, pay_date or end)
-    return rules_for(settings.country).calculate(inp, params, settings)
+    result = rules_for(settings.country).calculate(inp, params, settings)
+    result.contract_id, result.pay_basis = inp.contract_id, inp.pay_basis
+    result.time_entry_ids = list(inp.time_entry_ids)
+    return result

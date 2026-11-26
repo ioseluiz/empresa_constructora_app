@@ -150,7 +150,11 @@ SPECTACULAR_SETTINGS = {
     "SCHEMA_PATH_PREFIX": "/api/v1",
     "COMPONENT_SPLIT_REQUEST": True,
     # Mismo conjunto de valores en contratos y jornadas: un solo enum en el cliente.
-    "ENUM_NAME_OVERRIDES": {"JornadaEnum": "apps.timeclock.models.WorkDay.Jornada"},
+    "ENUM_NAME_OVERRIDES": {
+        "JornadaEnum": "apps.timeclock.models.WorkDay.Jornada",
+        "PayFrequencyEnum": "apps.payroll.models.PayrollRun.Frequency",
+        "PayrollConceptKindEnum": "apps.payroll.models.PayrollConcept.Kind",
+    },
 }
 
 # Autenticación JWT: access token corto en memoria del navegador, refresh token rotativo

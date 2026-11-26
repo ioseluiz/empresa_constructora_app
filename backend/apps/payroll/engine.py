@@ -59,6 +59,8 @@ class PayInput:
     deductions: list[DeductionInput] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     explanation: list[str] = field(default_factory=list)
+    contract_id: Any = None
+    time_entry_ids: list[Any] = field(default_factory=list)
 
     @property
     def periods_per_year(self) -> int:
@@ -87,6 +89,9 @@ class PayResult:
     warnings: list[str] = field(default_factory=list)
     explanation: list[str] = field(default_factory=list)
     parameters: dict[str, str] = field(default_factory=dict)
+    contract_id: Any = None
+    pay_basis: str = ""
+    time_entry_ids: list[Any] = field(default_factory=list)
 
     def total(self, kind: str) -> Decimal:
         return sum((ln.amount for ln in self.lines if ln.kind == kind), ZERO)
