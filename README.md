@@ -161,6 +161,18 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
   siguiente (hasta 62 días atrás).
 - `GET /api/v1/payroll/consolidated/` es la planilla global por centro de costo y concepto.
 
+## Comprobantes, ACH y reportes (`payroll/payslips.py`, `payroll/reports.py`)
+
+- Al aprobar una corrida, Celery (`generate_payslips`) emite un PDF por empleado con ReportLab
+  (Python puro: sin dependencias del sistema). Numeración correlativa e inmutable por empresa;
+  la emisión es idempotente ("Emitir pendientes"). Incluye acumulados del año.
+- Descarga individual, ZIP por corrida y envío por correo (usa `EMAIL_URL`; en desarrollo, la
+  consola).
+- ACH: resumen y CSV genérico. Los formatos propios de cada banco se agregan en
+  `reports.ACH_FORMATS` cuando el cliente entregue la especificación.
+- Informe mensual de cuotas CSS / Seguro Educativo en Excel (base para el SIPE; validar el
+  formato de carga vigente).
+
 ## Cliente de la API (orval)
 
 El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:

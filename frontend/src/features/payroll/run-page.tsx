@@ -7,12 +7,15 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Download,
   XCircle,
 } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import type { PayrollLine } from '@/api/generated/model'
+import { downloadFile } from '@/api/client'
+import type { PayrollLine, Payslip } from '@/api/generated/model'
 import {
+  getPayrollPayslipsDownloadRetrieveUrl,
   getPayrollRunsLinesListQueryKey,
   getPayrollRunsListQueryKey,
   getPayrollRunsRetrieveQueryKey,
@@ -22,6 +25,7 @@ import {
   usePayrollRunsCancelCreate,
   usePayrollRunsLinesList,
   usePayrollRunsPayCreate,
+  usePayrollRunsPayslipsList,
   usePayrollRunsRetrieve,
   usePayrollRunsSummaryRetrieve,
 } from '@/api/generated/planilla/planilla'
@@ -39,6 +43,7 @@ import { formatDate, formatDateTime, formatMoney } from '@/lib/format'
 import { useFormErrors } from '@/lib/use-form-errors'
 import { cn } from '@/lib/utils'
 import { RUN_STATUS } from './constants'
+import { RunDocuments } from './run-documents'
 
 const KIND_LABEL: Record<string, string> = {
   earning: 'Ingreso',
@@ -47,9 +52,23 @@ const KIND_LABEL: Record<string, string> = {
   provision: 'Provisión',
 }
 
-function LineDetail({ line }: { line: PayrollLine }) {
+function LineDetail({ line, payslip }: { line: PayrollLine; payslip?: Payslip }) {
   return (
     <div className="bg-muted/30 space-y-3 px-4 py-3">
+      {payslip && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            void downloadFile(
+              getPayrollPayslipsDownloadRetrieveUrl(payslip.id),
+              `comprobante_${String(payslip.number).padStart(7, '0')}_${payslip.employee_code}.pdf`,
+            )
+          }
+        >
+          <Download className="size-4" /> Comprobante No. {String(payslip.number).padStart(7, '0')}
+        </Button>
+      )}
       {line.error && <Alert>{line.error}</Alert>}
       {line.warnings.length > 0 && (
         <ul className="space-y-1 text-sm">
@@ -108,6 +127,9 @@ export function RunPage() {
   const r = run.data
   const hasLines = !!r && r.status !== 'draft'
   const summary = usePayrollRunsSummaryRetrieve(id, { query: { enabled: hasLines } })
+  const approvedRun = r?.status === 'approved' || r?.status === 'paid'
+  const slips = usePayrollRunsPayslipsList(id, undefined, { query: { enabled: approvedRun } })
+  const slipsByEmployee = new Map((slips.data ?? []).map((s) => [s.employee, s]))
   const lines = usePayrollRunsLinesList(
     id,
     { search: search || undefined, page },
@@ -247,6 +269,7 @@ export function RunPage() {
       </div>
       {error && <Alert>{error}</Alert>}
       {r.notes && <Alert>{r.notes}</Alert>}
+      {(r.status === 'approved' || r.status === 'paid') && <RunDocuments run={r} />}
       {r.status === 'draft' ? (
         <EmptyState
           icon={Calculator}
@@ -396,7 +419,7 @@ export function RunPage() {
                           {open && (
                             <tr>
                               <td colSpan={6} className="p-0">
-                                <LineDetail line={ln} />
+                                <LineDetail line={ln} payslip={slipsByEmployee.get(ln.employee)} />
                               </td>
                             </tr>
                           )}

@@ -32,6 +32,7 @@ import { SimulatorPage } from '@/features/payroll/simulator-page'
 import { ConsolidatedPage } from '@/features/payroll/consolidated-page'
 import { RunPage } from '@/features/payroll/run-page'
 import { RunsPage } from '@/features/payroll/runs-page'
+import { ReportsPage } from '@/features/payroll/reports-page'
 
 function guarded(permission: string, page: React.ReactNode) {
   return <RequirePermission permission={permission}>{page}</RequirePermission>
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
           { path: 'planilla', element: guarded('payroll.view', <RunsPage />) },
           { path: 'planilla/corridas/:id', element: guarded('payroll.view', <RunPage />) },
           { path: 'planilla/global', element: guarded('payroll.view', <ConsolidatedPage />) },
+          { path: 'reportes', element: guarded('payroll.reports', <ReportsPage />) },
           { path: 'planilla/simulador', element: guarded('payroll.view', <SimulatorPage />) },
           { path: 'planilla/conceptos', element: guarded('payroll.view', <ConceptsPage />) },
           { path: 'planilla/parametros', element: guarded('payroll.view', <ParametersPage />) },

@@ -5,6 +5,8 @@
  * API para la gestión de empresas constructoras.
  * OpenAPI spec version: 0.1.0
  */
+import type { PatchedPayrollSettingsRequestCompanyAccountType } from './patchedPayrollSettingsRequestCompanyAccountType';
+import type { PatchedPayrollSettingsRequestCompanyBank } from './patchedPayrollSettingsRequestCompanyBank';
 
 export interface PatchedPayrollSettingsRequest {
   /**
@@ -19,4 +21,11 @@ export interface PatchedPayrollSettingsRequest {
   union_dues_rate?: string;
   /** Ausencias, tardanzas y salidas anticipadas de jornadas aprobadas. */
   deduct_unworked_time?: boolean;
+  payslip_show_employer?: boolean;
+  company_bank?: typeof PatchedPayrollSettingsRequestCompanyBank[keyof typeof PatchedPayrollSettingsRequestCompanyBank];
+  company_account_type?: typeof PatchedPayrollSettingsRequestCompanyAccountType[keyof typeof PatchedPayrollSettingsRequestCompanyAccountType];
+  /** @maxLength 30 */
+  company_account_number?: string;
+  /** Ej.: {"banco_general": "71"}. Los da el banco al habilitar el servicio ACH. */
+  ach_routes?: unknown;
 }

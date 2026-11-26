@@ -56,7 +56,7 @@ de negocio + Row-Level Security (RLS) de PostgreSQL.**
 - `djangorestframework-simplejwt` (access token corto + refresh en cookie httpOnly)
 - `django-filter`, `django-environ`, `django-storages` (S3)
 - Celery + Redis: importación de marcaciones, cálculo de jornadas y planilla, PDFs/Excel, correos
-- WeasyPrint (comprobantes de pago en PDF), openpyxl (importes/exportes Excel)
+- ReportLab (comprobantes de pago en PDF; Python puro, sin dependencias del sistema), openpyxl (importes/exportes Excel)
 - Calidad: pytest + pytest-django + factory_boy + hypothesis, ruff, mypy (django-stubs), pre-commit
 
 **Frontend**
@@ -342,7 +342,7 @@ agregar días de duelo o decretados.
 
 ### 4.5 Comprobante de pago
 - Se genera **uno por empleado en cada corrida** (regular, décimo, vacaciones, liquidación),
-  en PDF con WeasyPrint.
+  en PDF (ReportLab).
 - Contenido:
   - Datos de la empresa (nombre, RUC) y del empleado (nombre, cédula, nº de seguro social, puesto).
   - Período de pago, fecha de pago y proyecto(s) / centro de costo.
@@ -428,7 +428,7 @@ Ramas: `main` (siempre desplegable) + ramas de feature con Pull Request obligato
 | 7 ✅ | **Horarios y motor de jornada**, bandeja de excepciones, aprobación → TimeEntry |
 | 8 ✅ | Motor de planilla, `payroll_pa`, parámetros legales con vigencia, tarifas de convención, descuentos |
 | 9 ✅ | Corridas de planilla, flujo de aprobación, planilla global consolidada |
-| 10 | **Comprobantes de pago**, archivo ACH, SIPE y Seguro Educativo |
+| 10 ✅ | **Comprobantes de pago**, archivo ACH, SIPE y Seguro Educativo |
 | 11 | **Vacaciones** y **décimo tercer mes** (provisiones y corridas especiales) |
 | 12 | Liquidaciones, Fondo de Cesantía, reportes DGI, endurecimiento, deploy a producción, piloto con cliente |
 

@@ -7,8 +7,10 @@ from .views import (
     PayrollConceptViewSet,
     PayrollRunViewSet,
     PayrollSettingsView,
+    PayslipViewSet,
     PreviewView,
     RecurringDeductionViewSet,
+    SipeReportView,
 )
 
 router = SimpleRouter()
@@ -16,9 +18,11 @@ router.register("legal-parameters", LegalParameterViewSet, basename="legal-param
 router.register("concepts", PayrollConceptViewSet, basename="payroll-concept")
 router.register("deductions", RecurringDeductionViewSet, basename="recurring-deduction")
 router.register("runs", PayrollRunViewSet, basename="payroll-run")
+router.register("payslips", PayslipViewSet, basename="payslip")
 urlpatterns = [
     path("settings/", PayrollSettingsView.as_view(), name="payroll-settings"),
     path("preview/", PreviewView.as_view(), name="payroll-preview"),
     path("consolidated/", ConsolidatedView.as_view(), name="payroll-consolidated"),
+    path("reports/sipe/", SipeReportView.as_view(), name="payroll-sipe"),
     *router.urls,
 ]

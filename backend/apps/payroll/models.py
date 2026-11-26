@@ -16,6 +16,7 @@ from django.db import models
 from django.db.models import Q
 
 from apps.core.models import BaseModel, MoneyField, RateField, TenantAwareModel
+from apps.organization.panama import BANKS
 
 
 class LegalParameter(BaseModel):
@@ -61,6 +62,23 @@ class PayrollSettings(TenantAwareModel):
         "cuota sindical (% del salario bruto)",
         default=Decimal("0.0"),
         help_text="Se descuenta a los empleados afiliados al sindicato.",
+    )
+    payslip_show_employer = models.BooleanField(
+        "mostrar aportes patronales en el comprobante", default=False
+    )
+    company_bank = models.CharField("banco de la empresa", max_length=20, choices=BANKS, blank=True)
+    company_account_type = models.CharField(
+        "tipo de cuenta de la empresa",
+        max_length=10,
+        choices=[("savings", "Ahorros"), ("checking", "Corriente")],
+        blank=True,
+    )
+    company_account_number = models.CharField("cuenta de la empresa", max_length=30, blank=True)
+    ach_routes = models.JSONField(
+        "códigos de ruta ACH por banco",
+        default=dict,
+        blank=True,
+        help_text='Ej.: {"banco_general": "71"}. Los da el banco al habilitar el servicio ACH.',
     )
     deduct_unworked_time = models.BooleanField(
         "descontar tiempo no laborado a asalariados",
@@ -336,3 +354,46 @@ class PayrollLineItem(TenantAwareModel):
 
     def __str__(self) -> str:
         return f"{self.code} {self.amount}"
+
+
+def payslip_upload_to(instance: "Payslip", filename: str) -> str:
+    return f"tenants/{instance.tenant_id}/payslips/{instance.run_id}/{instance.number:07d}.pdf"
+
+
+class Payslip(TenantAwareModel):
+    """Comprobante de pago: numeración correlativa e inmutable. Una corrección emite un
+    comprobante nuevo que referencia al anterior (`replaces`)."""
+
+    number = models.PositiveIntegerField("número", editable=False)
+    run = models.ForeignKey(
+        PayrollRun, verbose_name="planilla", on_delete=models.PROTECT, related_name="payslips"
+    )
+    line = models.OneToOneField(
+        PayrollLine, verbose_name="línea", on_delete=models.PROTECT, related_name="payslip"
+    )
+    employee = models.ForeignKey(
+        "hr.Employee", verbose_name="empleado", on_delete=models.PROTECT, related_name="payslips"
+    )
+    pdf = models.FileField("PDF", upload_to=payslip_upload_to, max_length=255)
+    net = MoneyField("neto")
+    replaces = models.ForeignKey(
+        "self",
+        verbose_name="reemplaza a",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    emailed_at = models.DateTimeField("enviado por correo", null=True, blank=True)
+    emailed_to = models.EmailField("enviado a", blank=True)
+
+    class Meta:
+        verbose_name = "comprobante de pago"
+        verbose_name_plural = "comprobantes de pago"
+        ordering = ["-number"]
+        constraints = [
+            models.UniqueConstraint(fields=["tenant", "number"], name="unique_payslip_number"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Comprobante {self.number:07d}"
