@@ -25,6 +25,10 @@ import { ImportsPage } from '@/features/timeclock/imports-page'
 import { PunchesPage } from '@/features/timeclock/punches-page'
 import { ShiftsPage } from '@/features/timeclock/shifts-page'
 import { WorkDaysPage } from '@/features/timeclock/workdays-page'
+import { ConceptsPage } from '@/features/payroll/concepts-page'
+import { ParametersPage } from '@/features/payroll/parameters-page'
+import { PayrollSettingsPage } from '@/features/payroll/settings-page'
+import { SimulatorPage } from '@/features/payroll/simulator-page'
 
 function guarded(permission: string, page: React.ReactNode) {
   return <RequirePermission permission={permission}>{page}</RequirePermission>
@@ -55,6 +59,13 @@ export const router = createBrowserRouter([
           {
             path: 'marcaciones/jornadas',
             element: guarded('timeclock.view', <WorkDaysPage />),
+          },
+          { path: 'planilla', element: guarded('payroll.view', <SimulatorPage />) },
+          { path: 'planilla/conceptos', element: guarded('payroll.view', <ConceptsPage />) },
+          { path: 'planilla/parametros', element: guarded('payroll.view', <ParametersPage />) },
+          {
+            path: 'planilla/configuracion',
+            element: guarded('payroll.view', <PayrollSettingsPage />),
           },
           { path: 'marcaciones/horarios', element: guarded('timeclock.view', <ShiftsPage />) },
           {

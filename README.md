@@ -139,6 +139,21 @@ Instalar los hooks de git: `cd backend && uv run pre-commit install` (desde la r
 - Aprobar una jornada genera `TimeEntry` (horas por tipo, tipo de día y centro de costo): es lo
   único que usará la planilla. No se aprueban jornadas con marcaciones incompletas.
 
+## Motor de planilla (`apps/payroll`, `apps/payroll_pa`)
+
+- `payroll` es independiente del país: tipos del cálculo (`engine.py`), lectura de parámetros
+  con vigencia (`params.py`), preparación de datos desde la BD (`calculator.py`) y el registro de
+  reglas por país (`rules.py`). `payroll_pa` registra las reglas de Panamá al arrancar.
+- `LegalParameter` es **global** (no por empresa) y versionado por fecha: un cambio de tasa es
+  una vigencia nueva (Django admin o migración de datos), nunca un cambio de código. Valores de
+  referencia en `payroll_pa/parameters.py` (validar con contador).
+- Cada empresa tiene `PayrollSettings` (riesgos profesionales, cuota sindical) y su catálogo de
+  `PayrollConcept`; los del sistema no cambian su tratamiento fiscal.
+- Solo se pagan horas de jornadas **aprobadas** (`TimeEntry`). Las interpretaciones legales
+  aplicadas están documentadas en `payroll_pa/rules.py`; los casos de referencia, en
+  `payroll/tests/test_rules_pa.py`.
+- `POST /api/v1/payroll/preview/` simula un empleado y período sin guardar nada.
+
 ## Cliente de la API (orval)
 
 El frontend usa tipos y hooks de TanStack Query generados desde el esquema OpenAPI:

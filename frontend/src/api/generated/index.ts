@@ -7,4 +7,5 @@ export * from './marcaciones/marcaciones';
 export * from './mfa/mfa';
 export * from './organizacion/organizacion';
 export * from './personal/personal';
+export * from './planilla/planilla';
 export * from './proyectos/proyectos';
