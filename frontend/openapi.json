@@ -4629,6 +4629,59 @@
                 }
             }
         },
+        "/api/v1/payroll/consolidated/": {
+            "get": {
+                "operationId": "payroll_consolidated_retrieve",
+                "description": "Planilla global: consolida las corridas con fecha de pago en el rango.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "date_from",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_to",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "query",
+                        "name": "include_calculated",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Consolidated"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/payroll/deductions/": {
             "get": {
                 "operationId": "payroll_deductions_list",
@@ -4939,6 +4992,498 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PreviewResult"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/": {
+            "get": {
+                "operationId": "payroll_runs_list",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "frequency",
+                        "schema": {
+                            "type": "string",
+                            "title": "Frecuencia",
+                            "enum": [
+                                "biweekly",
+                                "monthly",
+                                "weekly"
+                            ]
+                        },
+                        "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "scope",
+                        "schema": {
+                            "type": "string",
+                            "title": "Alcance",
+                            "enum": [
+                                "company",
+                                "office",
+                                "project"
+                            ]
+                        },
+                        "description": "* `project` - Proyecto\n* `office` - Oficina central\n* `company` - Toda la empresa"
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "title": "Estado",
+                            "enum": [
+                                "approved",
+                                "calculated",
+                                "cancelled",
+                                "draft",
+                                "paid"
+                            ]
+                        },
+                        "description": "* `draft` - Borrador\n* `calculated` - Calculada\n* `approved` - Aprobada\n* `paid` - Pagada\n* `cancelled` - Anulada"
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedPayrollRunList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "payroll_runs_create",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "tags": [
+                    "planilla"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollRunRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollRunRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayrollRunRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/": {
+            "get": {
+                "operationId": "payroll_runs_retrieve",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/approve/": {
+            "post": {
+                "operationId": "payroll_runs_approve_create",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/calculate/": {
+            "post": {
+                "operationId": "payroll_runs_calculate_create",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/cancel/": {
+            "post": {
+                "operationId": "payroll_runs_cancel_create",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/lines/": {
+            "get": {
+                "operationId": "payroll_runs_lines_list",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "frequency",
+                        "schema": {
+                            "type": "string",
+                            "title": "Frecuencia",
+                            "enum": [
+                                "biweekly",
+                                "monthly",
+                                "weekly"
+                            ]
+                        },
+                        "description": "* `weekly` - Semanal\n* `biweekly` - Quincenal\n* `monthly` - Mensual"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "scope",
+                        "schema": {
+                            "type": "string",
+                            "title": "Alcance",
+                            "enum": [
+                                "company",
+                                "office",
+                                "project"
+                            ]
+                        },
+                        "description": "* `project` - Proyecto\n* `office` - Oficina central\n* `company` - Toda la empresa"
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "title": "Estado",
+                            "enum": [
+                                "approved",
+                                "calculated",
+                                "cancelled",
+                                "draft",
+                                "paid"
+                            ]
+                        },
+                        "description": "* `draft` - Borrador\n* `calculated` - Calculada\n* `approved` - Aprobada\n* `paid` - Pagada\n* `cancelled` - Anulada"
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedPayrollLineList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/pay/": {
+            "post": {
+                "operationId": "payroll_runs_pay_create",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayrollRun"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/payroll/runs/{id}/summary/": {
+            "get": {
+                "operationId": "payroll_runs_summary_retrieve",
+                "description": "Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de\naprobar). Una planilla aprobada no cambia.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Un Cadena UUID que identifique este corrida de planilla.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "planilla"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Consolidated"
                                 }
                             }
                         },
@@ -8309,6 +8854,64 @@
                     "employee"
                 ]
             },
+            "ConceptTotal": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "total": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    }
+                },
+                "required": [
+                    "code",
+                    "kind",
+                    "name",
+                    "total"
+                ]
+            },
+            "Consolidated": {
+                "type": "object",
+                "properties": {
+                    "runs": {
+                        "type": "integer"
+                    },
+                    "employees": {
+                        "type": "integer"
+                    },
+                    "totals": {
+                        "$ref": "#/components/schemas/RunTotals"
+                    },
+                    "by_cost_center": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CostCenterTotal"
+                        }
+                    },
+                    "by_concept": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConceptTotal"
+                        }
+                    }
+                },
+                "required": [
+                    "by_concept",
+                    "by_cost_center",
+                    "employees",
+                    "runs",
+                    "totals"
+                ]
+            },
             "ContractTypeEnum": {
                 "enum": [
                     "indefinite",
@@ -8447,6 +9050,51 @@
                 "required": [
                     "code",
                     "name"
+                ]
+            },
+            "CostCenterTotal": {
+                "type": "object",
+                "properties": {
+                    "cost_center": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "earning": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "employer": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "provision": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "deduction": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "total_cost": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    }
+                },
+                "required": [
+                    "cost_center",
+                    "deduction",
+                    "earning",
+                    "employer",
+                    "name",
+                    "provision",
+                    "total_cost"
                 ]
             },
             "DayKindEnum": {
@@ -10875,6 +11523,68 @@
                     }
                 }
             },
+            "PaginatedPayrollLineList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PayrollLine"
+                        }
+                    }
+                }
+            },
+            "PaginatedPayrollRunList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PayrollRun"
+                        }
+                    }
+                }
+            },
             "PaginatedProjectList": {
                 "type": "object",
                 "required": [
@@ -12367,6 +13077,467 @@
                     "name"
                 ]
             },
+            "PayrollLine": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "employee": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true,
+                        "title": "Empleado"
+                    },
+                    "employee_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_id_number": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "pay_basis": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Base de pago"
+                    },
+                    "gross": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Bruto"
+                    },
+                    "deductions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Deducciones"
+                    },
+                    "net": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Neto"
+                    },
+                    "employer_contributions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Aportes patronales"
+                    },
+                    "provisions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Provisiones"
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "readOnly": true
+                    },
+                    "explanation": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "readOnly": true
+                    },
+                    "error": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PayrollLineItem"
+                        },
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "deductions",
+                    "employee",
+                    "employee_code",
+                    "employee_id_number",
+                    "employee_name",
+                    "employer_contributions",
+                    "error",
+                    "explanation",
+                    "gross",
+                    "id",
+                    "items",
+                    "net",
+                    "pay_basis",
+                    "provisions",
+                    "warnings"
+                ]
+            },
+            "PayrollLineItem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Código"
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Nombre"
+                    },
+                    "kind": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayrollConceptKindEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Tipo"
+                    },
+                    "quantity": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Cantidad"
+                    },
+                    "rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,6})?$",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Tarifa / tasa"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Monto"
+                    },
+                    "cost_center_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "detail": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Detalle"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "code",
+                    "cost_center_code",
+                    "detail",
+                    "id",
+                    "kind",
+                    "name",
+                    "quantity",
+                    "rate"
+                ]
+            },
+            "PayrollRun": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "number": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Número"
+                    },
+                    "run_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/RunTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "frequency": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayFrequencyEnum"
+                            }
+                        ],
+                        "title": "Frecuencia"
+                    },
+                    "frequency_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "scope": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ScopeEnum"
+                            }
+                        ],
+                        "title": "Alcance"
+                    },
+                    "scope_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Proyecto"
+                    },
+                    "project_code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "period_start": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Inicio del período"
+                    },
+                    "period_end": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fin del período"
+                    },
+                    "pay_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fecha de pago"
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayrollRunStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "title": "Estado"
+                    },
+                    "status_display": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "employee_count": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "Empleados"
+                    },
+                    "gross": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Bruto"
+                    },
+                    "deductions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Deducciones"
+                    },
+                    "net": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Neto"
+                    },
+                    "employer_contributions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Aportes patronales"
+                    },
+                    "provisions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$",
+                        "readOnly": true,
+                        "title": "Provisiones"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Observaciones"
+                    },
+                    "parameters": {
+                        "readOnly": true,
+                        "title": "Parámetros legales usados"
+                    },
+                    "error_count": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "default": 0
+                    },
+                    "warning_count": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "default": 0
+                    },
+                    "calculated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Calculada"
+                    },
+                    "calculated_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "approved_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Aprobada"
+                    },
+                    "approved_by_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "paid_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Pagada"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado"
+                    }
+                },
+                "required": [
+                    "approved_at",
+                    "approved_by_email",
+                    "calculated_at",
+                    "calculated_by_email",
+                    "created_at",
+                    "deductions",
+                    "employee_count",
+                    "employer_contributions",
+                    "error_count",
+                    "frequency",
+                    "frequency_display",
+                    "gross",
+                    "id",
+                    "net",
+                    "notes",
+                    "number",
+                    "paid_at",
+                    "parameters",
+                    "pay_date",
+                    "period_end",
+                    "period_start",
+                    "project_code",
+                    "provisions",
+                    "scope",
+                    "scope_display",
+                    "status",
+                    "status_display",
+                    "warning_count"
+                ]
+            },
+            "PayrollRunRequest": {
+                "type": "object",
+                "properties": {
+                    "run_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/RunTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo"
+                    },
+                    "frequency": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PayFrequencyEnum"
+                            }
+                        ],
+                        "title": "Frecuencia"
+                    },
+                    "scope": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ScopeEnum"
+                            }
+                        ],
+                        "title": "Alcance"
+                    },
+                    "project": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "title": "Proyecto"
+                    },
+                    "period_start": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Inicio del período"
+                    },
+                    "period_end": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fin del período"
+                    },
+                    "pay_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Fecha de pago"
+                    }
+                },
+                "required": [
+                    "frequency",
+                    "pay_date",
+                    "period_end",
+                    "period_start",
+                    "scope"
+                ]
+            },
+            "PayrollRunStatusEnum": {
+                "enum": [
+                    "draft",
+                    "calculated",
+                    "approved",
+                    "paid",
+                    "cancelled"
+                ],
+                "type": "string",
+                "description": "* `draft` - Borrador\n* `calculated` - Calculada\n* `approved` - Aprobada\n* `paid` - Pagada\n* `cancelled` - Anulada"
+            },
             "PayrollSettings": {
                 "type": "object",
                 "properties": {
@@ -13455,6 +14626,50 @@
                     "name"
                 ]
             },
+            "RunTotals": {
+                "type": "object",
+                "properties": {
+                    "gross": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "deductions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "net": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "employer_contributions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    },
+                    "provisions": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,16}(?:\\.\\d{0,2})?$"
+                    }
+                },
+                "required": [
+                    "deductions",
+                    "employer_contributions",
+                    "gross",
+                    "net",
+                    "provisions"
+                ]
+            },
+            "RunTypeEnum": {
+                "enum": [
+                    "regular"
+                ],
+                "type": "string",
+                "description": "* `regular` - Regular"
+            },
             "SalaryRecord": {
                 "type": "object",
                 "properties": {
@@ -13541,6 +14756,15 @@
                     "contract",
                     "valid_from"
                 ]
+            },
+            "ScopeEnum": {
+                "enum": [
+                    "project",
+                    "office",
+                    "company"
+                ],
+                "type": "string",
+                "description": "* `project` - Proyecto\n* `office` - Oficina central\n* `company` - Toda la empresa"
             },
             "SexEnum": {
                 "enum": [

@@ -11,6 +11,7 @@
 
 from decimal import Decimal
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q
 
@@ -169,3 +170,169 @@ class RecurringDeduction(TenantAwareModel):
         if self.total_amount is None:
             return None
         return max(Decimal("0"), self.total_amount - self.paid_amount)
+
+
+class PayrollRun(TenantAwareModel):
+    """Corrida de planilla de un período. Aprobada es inmutable: las correcciones se hacen con
+    ajustes en un período siguiente."""
+
+    class RunType(models.TextChoices):
+        REGULAR = "regular", "Regular"
+
+    class Scope(models.TextChoices):
+        PROJECT = "project", "Proyecto"
+        OFFICE = "office", "Oficina central"
+        COMPANY = "company", "Toda la empresa"
+
+    class Frequency(models.TextChoices):
+        WEEKLY = "weekly", "Semanal"
+        BIWEEKLY = "biweekly", "Quincenal"
+        MONTHLY = "monthly", "Mensual"
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Borrador"
+        CALCULATED = "calculated", "Calculada"
+        APPROVED = "approved", "Aprobada"
+        PAID = "paid", "Pagada"
+        CANCELLED = "cancelled", "Anulada"
+
+    number = models.PositiveIntegerField("número", editable=False)
+    run_type = models.CharField(
+        "tipo", max_length=12, choices=RunType.choices, default=RunType.REGULAR
+    )
+    frequency = models.CharField("frecuencia", max_length=10, choices=Frequency.choices)
+    scope = models.CharField("alcance", max_length=10, choices=Scope.choices)
+    project = models.ForeignKey(
+        "projects.Project",
+        verbose_name="proyecto",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="payroll_runs",
+    )
+    period_start = models.DateField("inicio del período")
+    period_end = models.DateField("fin del período")
+    pay_date = models.DateField("fecha de pago")
+    status = models.CharField("estado", max_length=12, choices=Status.choices, default=Status.DRAFT)
+    employee_count = models.PositiveIntegerField("empleados", default=0)
+    gross = MoneyField("bruto", default=Decimal("0"))
+    deductions = MoneyField("deducciones", default=Decimal("0"))
+    net = MoneyField("neto", default=Decimal("0"))
+    employer_contributions = MoneyField("aportes patronales", default=Decimal("0"))
+    provisions = MoneyField("provisiones", default=Decimal("0"))
+    parameters = models.JSONField("parámetros legales usados", default=dict, blank=True)
+    notes = models.CharField("observaciones", max_length=255, blank=True)
+    calculated_at = models.DateTimeField("calculada", null=True, blank=True)
+    calculated_by = models.ForeignKey(
+        "accounts.User", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    approved_at = models.DateTimeField("aprobada", null=True, blank=True)
+    approved_by = models.ForeignKey(
+        "accounts.User", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    paid_at = models.DateTimeField("pagada", null=True, blank=True)
+    paid_by = models.ForeignKey(
+        "accounts.User", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = "corrida de planilla"
+        verbose_name_plural = "corridas de planilla"
+        ordering = ["-period_end", "-number"]
+        constraints = [
+            models.UniqueConstraint(fields=["tenant", "number"], name="unique_payroll_run_number"),
+            models.CheckConstraint(
+                condition=Q(period_end__gte=models.F("period_start")),
+                name="payroll_run_dates_consistent",
+            ),
+            models.CheckConstraint(
+                condition=~Q(scope="project") | Q(project__isnull=False),
+                name="project_run_has_project",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Planilla #{self.number} {self.period_start:%d/%m}–{self.period_end:%d/%m/%Y}"
+
+    @property
+    def is_editable(self) -> bool:
+        return self.status in (self.Status.DRAFT, self.Status.CALCULATED)
+
+
+class PayrollLine(TenantAwareModel):
+    """Resultado de un empleado en una corrida."""
+
+    run = models.ForeignKey(
+        PayrollRun, verbose_name="corrida", on_delete=models.CASCADE, related_name="lines"
+    )
+    employee = models.ForeignKey(
+        "hr.Employee",
+        verbose_name="empleado",
+        on_delete=models.PROTECT,
+        related_name="payroll_lines",
+    )
+    contract = models.ForeignKey(
+        "hr.EmploymentContract", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    pay_basis = models.CharField("base de pago", max_length=10, blank=True)
+    gross = MoneyField("bruto", default=Decimal("0"))
+    deductions = MoneyField("deducciones", default=Decimal("0"))
+    net = MoneyField("neto", default=Decimal("0"))
+    employer_contributions = MoneyField("aportes patronales", default=Decimal("0"))
+    provisions = MoneyField("provisiones", default=Decimal("0"))
+    warnings = models.JSONField("advertencias", default=list, blank=True)
+    explanation = models.JSONField("explicación", default=list, blank=True)
+    error = models.CharField("error", max_length=255, blank=True)
+    time_entry_ids = ArrayField(
+        models.UUIDField(), verbose_name="horas incluidas", default=list, blank=True
+    )
+
+    class Meta:
+        verbose_name = "línea de planilla"
+        verbose_name_plural = "líneas de planilla"
+        ordering = ["employee__last_name", "employee__first_name"]
+        constraints = [
+            models.UniqueConstraint(fields=["run", "employee"], name="unique_employee_per_run"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.run_id} · {self.employee_id}"
+
+
+class PayrollLineItem(TenantAwareModel):
+    line = models.ForeignKey(
+        PayrollLine, verbose_name="línea", on_delete=models.CASCADE, related_name="items"
+    )
+    concept = models.ForeignKey(
+        PayrollConcept,
+        verbose_name="concepto",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    code = models.CharField("código", max_length=30)
+    name = models.CharField("nombre", max_length=120)
+    kind = models.CharField("tipo", max_length=10, choices=PayrollConcept.Kind.choices)
+    quantity = models.DecimalField(
+        "cantidad", max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    rate = models.DecimalField(
+        "tarifa / tasa", max_digits=14, decimal_places=6, null=True, blank=True
+    )
+    amount = MoneyField("monto")
+    cost_center = models.ForeignKey(
+        "organization.CostCenter", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    detail = models.CharField("detalle", max_length=255, blank=True)
+    deduction = models.ForeignKey(
+        RecurringDeduction, on_delete=models.PROTECT, null=True, blank=True, related_name="items"
+    )
+
+    class Meta:
+        verbose_name = "concepto de la línea"
+        verbose_name_plural = "conceptos de la línea"
+        ordering = ["line", "kind", "code"]
+
+    def __str__(self) -> str:
+        return f"{self.code} {self.amount}"

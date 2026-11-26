@@ -1,9 +1,12 @@
+from datetime import date
 from typing import Any
 
 from django.db import transaction
-from django.db.models import ProtectedError, QuerySet
-from drf_spectacular.utils import extend_schema
+from django.db.models import Count, ProtectedError, Q, QuerySet
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, serializers, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.request import Request
@@ -16,12 +19,22 @@ from apps.iam.permissions import TenantPermissionMixin, get_request_scope
 from apps.iam.services import ALL_PROJECTS
 from apps.organization.models import CostCenter
 
+from . import runs
 from .calculator import PayrollInputError, calculate
-from .models import LegalParameter, PayrollConcept, PayrollSettings, RecurringDeduction
+from .models import (
+    LegalParameter,
+    PayrollConcept,
+    PayrollRun,
+    PayrollSettings,
+    RecurringDeduction,
+)
 from .params import MissingParameter
 from .serializers import (
+    ConsolidatedSerializer,
     LegalParameterSerializer,
     PayrollConceptSerializer,
+    PayrollLineSerializer,
+    PayrollRunSerializer,
     PayrollSettingsSerializer,
     PreviewRequestSerializer,
     PreviewResultSerializer,
@@ -176,3 +189,146 @@ class PreviewView(TenantPermissionMixin, APIView):
             "parameters": result.parameters,
         }
         return Response(PreviewResultSerializer(body).data)
+
+
+# ------------------------------------------------------------------ Sprint 9: corridas
+
+APPROVE = "payroll.approve"
+
+
+def ensure_run_scope(request: Request, permission: str, run_scope: str, project_id: Any) -> None:
+    scope = get_request_scope(request, permission)
+    if scope == ALL_PROJECTS:
+        return
+    if run_scope != PayrollRun.Scope.PROJECT or project_id not in scope:
+        raise PermissionDenied("Solo puedes operar planillas de los proyectos asignados a tu rol.")
+
+
+@extend_schema(tags=["planilla"])
+class PayrollRunViewSet(
+    TenantPermissionMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Corridas de planilla: borrador → calculada → aprobada → pagada (o anulada antes de
+    aprobar). Una planilla aprobada no cambia."""
+
+    serializer_class = PayrollRunSerializer
+    action_permissions = {
+        "list": VIEW,
+        "retrieve": VIEW,
+        "lines": VIEW,
+        "summary": VIEW,
+        "create": CALCULATE,
+        "calculate": CALCULATE,
+        "cancel": CALCULATE,
+        "approve": APPROVE,
+        "pay": APPROVE,
+    }
+    filterset_fields = ["status", "scope", "project", "frequency"]
+    ordering = ["-period_end", "-number"]
+
+    def get_queryset(self) -> QuerySet[PayrollRun]:
+        qs = PayrollRun.objects.select_related("project", "calculated_by", "approved_by").annotate(
+            error_count=Count("lines", filter=~Q(lines__error="")),
+            warning_count=Count("lines", filter=~Q(lines__warnings=[])),
+        )
+        if getattr(self, "swagger_fake_view", False):
+            return qs
+        scope = get_request_scope(self.request, VIEW)
+        if scope == ALL_PROJECTS:
+            return qs
+        return qs.filter(scope=PayrollRun.Scope.PROJECT, project_id__in=scope)
+
+    def filter_queryset(self, queryset: QuerySet) -> QuerySet:
+        return super().filter_queryset(queryset) if self.action == "list" else queryset
+
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
+        data = serializer.validated_data
+        project = data.get("project")
+        ensure_run_scope(self.request, CALCULATE, data["scope"], project.pk if project else None)
+        run = runs.create_run(**data, created_by=self.request.user)
+        serializer.instance = run
+        audit.record(audit.Action.CREATE, run, request=self.request, changes=serializer.data)
+
+    def _act(self, request: Request, permission: str, fn: Any, action: str) -> Response:
+        run = self.get_object()
+        ensure_run_scope(request, permission, run.scope, run.project_id)
+        try:
+            run = fn(run, request.user)
+        except runs.RunError as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
+        audit.record(action, run, request=request, changes={"estado": run.status})
+        return Response(self.get_serializer(self.get_queryset().get(pk=run.pk)).data)
+
+    @extend_schema(request=None, responses=PayrollRunSerializer)
+    @action(detail=True, methods=["post"])
+    def calculate(self, request: Request, pk: str | None = None) -> Response:
+        return self._act(request, CALCULATE, runs.calculate_run, audit.Action.UPDATE)
+
+    @extend_schema(request=None, responses=PayrollRunSerializer)
+    @action(detail=True, methods=["post"])
+    def approve(self, request: Request, pk: str | None = None) -> Response:
+        return self._act(request, APPROVE, runs.approve_run, audit.Action.APPROVE)
+
+    @extend_schema(request=None, responses=PayrollRunSerializer)
+    @action(detail=True, methods=["post"])
+    def pay(self, request: Request, pk: str | None = None) -> Response:
+        return self._act(request, APPROVE, runs.mark_paid, audit.Action.UPDATE)
+
+    @extend_schema(request=None, responses=PayrollRunSerializer)
+    @action(detail=True, methods=["post"])
+    def cancel(self, request: Request, pk: str | None = None) -> Response:
+        return self._act(request, CALCULATE, runs.cancel_run, audit.Action.REVOKE)
+
+    @extend_schema(
+        responses=PayrollLineSerializer(many=True),
+        parameters=[OpenApiParameter("search", str), OpenApiParameter("page", int)],
+    )
+    @action(detail=True, methods=["get"])
+    def lines(self, request: Request, pk: str | None = None) -> Response:
+        run = self.get_object()
+        qs = run.lines.select_related("employee").prefetch_related("items__cost_center")
+        term = request.query_params.get("search")
+        if term:
+            qs = qs.filter(
+                Q(employee__first_name__icontains=term)
+                | Q(employee__last_name__icontains=term)
+                | Q(employee__code__icontains=term)
+            )
+        page = self.paginate_queryset(qs)
+        return self.get_paginated_response(PayrollLineSerializer(page, many=True).data)
+
+    @extend_schema(responses=ConsolidatedSerializer)
+    @action(detail=True, methods=["get"])
+    def summary(self, request: Request, pk: str | None = None) -> Response:
+        return Response(ConsolidatedSerializer(runs.consolidated([self.get_object()])).data)
+
+
+@extend_schema(tags=["planilla"])
+class ConsolidatedView(TenantPermissionMixin, APIView):
+    """Planilla global: consolida las corridas con fecha de pago en el rango."""
+
+    required_permission = VIEW
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("date_from", OpenApiTypes.DATE, required=True),
+            OpenApiParameter("date_to", OpenApiTypes.DATE, required=True),
+            OpenApiParameter("include_calculated", OpenApiTypes.BOOL),
+        ],
+        responses=ConsolidatedSerializer,
+    )
+    def get(self, request: Request) -> Response:
+        if get_request_scope(request, VIEW) != ALL_PROJECTS:
+            raise PermissionDenied("La planilla global requiere acceso a toda la empresa.")
+        try:
+            start = date.fromisoformat(request.query_params["date_from"])
+            end = date.fromisoformat(request.query_params["date_to"])
+        except (KeyError, ValueError) as exc:
+            raise ValidationError({"detail": "Indica date_from y date_to (AAAA-MM-DD)."}) from exc
+        include = request.query_params.get("include_calculated") in ("true", "1")
+        selected = runs.runs_paid_between(start, end, include)
+        return Response(ConsolidatedSerializer(runs.consolidated(selected)).data)

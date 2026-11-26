@@ -3,7 +3,9 @@ import { useAccess } from '@/features/access/use-access'
 import { cn } from '@/lib/utils'
 
 const TABS = [
-  { to: '/planilla', label: 'Simulador', end: true },
+  { to: '/planilla', label: 'Corridas', end: true },
+  { to: '/planilla/global', label: 'Planilla global' },
+  { to: '/planilla/simulador', label: 'Simulador' },
   { to: '/planilla/conceptos', label: 'Conceptos' },
   { to: '/planilla/parametros', label: 'Parámetros legales' },
   { to: '/planilla/configuracion', label: 'Configuración' },
